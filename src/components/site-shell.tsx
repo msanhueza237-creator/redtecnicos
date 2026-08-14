@@ -1,7 +1,9 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { Menu, Snowflake } from "lucide-react";
-import type { DemoRole } from "@/lib/auth/demo-session";
+import type { UserRole } from "@/domain/directory";
+import type { AppDataSource } from "@/lib/supabase/config";
+import { isAdminRole } from "@/lib/auth/roles";
 
 const navigation: Array<{ href: Route; label: string }> = [
   { href: "/tecnicos", label: "Buscar técnicos" },
@@ -9,16 +11,21 @@ const navigation: Array<{ href: Route; label: string }> = [
   { href: "/registro-tecnico", label: "Soy técnico" },
 ];
 
-function privateAreaLink(role: DemoRole | null): { href: Route; label: string } {
-  if (role === "technician") {
+function privateAreaLink(
+  role: UserRole | null,
+  authMode: AppDataSource,
+): { href: Route; label: string } {
+  if (role === "technician" || role === "company") {
     return { href: "/panel", label: "Panel profesional" };
   }
 
-  if (role) {
+  if (isAdminRole(role)) {
     return { href: "/admin", label: "Administración" };
   }
 
-  return { href: "/acceso-demo", label: "Ingreso profesional" };
+  return authMode === "supabase"
+    ? { href: "/ingresar" as Route, label: "Ingresar" }
+    : { href: "/acceso-demo", label: "Ingreso profesional" };
 }
 
 export function DemoBanner() {
@@ -43,8 +50,11 @@ export function Brand() {
   );
 }
 
-export function SiteHeader({ sessionRole }: Readonly<{ sessionRole: DemoRole | null }>) {
-  const privateArea = privateAreaLink(sessionRole);
+export function SiteHeader({
+  authMode,
+  sessionRole,
+}: Readonly<{ authMode: AppDataSource; sessionRole: UserRole | null }>) {
+  const privateArea = privateAreaLink(sessionRole, authMode);
 
   return (
     <header className="site-header">
@@ -86,8 +96,11 @@ export function SiteHeader({ sessionRole }: Readonly<{ sessionRole: DemoRole | n
   );
 }
 
-export function SiteFooter({ sessionRole }: Readonly<{ sessionRole: DemoRole | null }>) {
-  const privateArea = privateAreaLink(sessionRole);
+export function SiteFooter({
+  authMode,
+  sessionRole,
+}: Readonly<{ authMode: AppDataSource; sessionRole: UserRole | null }>) {
+  const privateArea = privateAreaLink(sessionRole, authMode);
 
   return (
     <footer className="site-footer">

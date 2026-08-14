@@ -3,14 +3,16 @@
 import { usePathname } from "next/navigation";
 import { MobileBottomNavigation } from "@/components/mobile-bottom-navigation";
 import { DemoBanner, SiteFooter, SiteHeader } from "@/components/site-shell";
-import type { DemoRole } from "@/lib/auth/demo-session";
+import type { UserRole } from "@/domain/directory";
+import type { AppDataSource } from "@/lib/supabase/config";
 
 interface AppChromeProps {
+  authMode: AppDataSource;
   children: React.ReactNode;
-  sessionRole: DemoRole | null;
+  sessionRole: UserRole | null;
 }
 
-export function AppChrome({ children, sessionRole }: Readonly<AppChromeProps>) {
+export function AppChrome({ authMode, children, sessionRole }: Readonly<AppChromeProps>) {
   const pathname = usePathname();
   const isAdminArea = pathname.startsWith("/admin");
 
@@ -30,11 +32,11 @@ export function AppChrome({ children, sessionRole }: Readonly<AppChromeProps>) {
       <a className="skip-link" href="#contenido-principal">
         Ir al contenido principal
       </a>
-      <DemoBanner />
-      <SiteHeader sessionRole={sessionRole} />
+      {authMode === "fixtures" && <DemoBanner />}
+      <SiteHeader authMode={authMode} sessionRole={sessionRole} />
       <main id="contenido-principal">{children}</main>
-      <SiteFooter sessionRole={sessionRole} />
-      <MobileBottomNavigation role={sessionRole} />
+      <SiteFooter authMode={authMode} sessionRole={sessionRole} />
+      <MobileBottomNavigation authMode={authMode} role={sessionRole} />
     </>
   );
 }

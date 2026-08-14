@@ -4613,3 +4613,27 @@ fieldset.professional-panel-field {
   .landing-metrics span { font-size: 9px; }
   .card-actions { grid-template-columns: 1fr; }
 }
+
+/* Supabase Auth */
+.auth-layout { display: grid; place-items: center; }
+.auth-card { width: min(100%, 600px); border: 1px solid var(--border); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow-lg); padding: clamp(22px, 5vw, 38px); }
+.registration-account-card { margin-inline: auto; }
+.auth-card-heading { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 26px; }
+.auth-card-heading h2 { color: var(--ink-strong); font-size: clamp(1.35rem, 4vw, 1.75rem); margin: 0 0 6px; }
+.auth-card-heading p { color: var(--muted); font-size: 14px; margin: 0; }
+.auth-form { display: grid; gap: 18px; }
+.auth-form .button { justify-self: start; min-width: 220px; }
+.auth-fields-two { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.auth-message { border: 1px solid #efb6b0; border-radius: 10px; background: #fff3f1; color: var(--danger); font-size: 14px; font-weight: 700; margin: 0; padding: 11px 13px; }
+.auth-message[data-status="success"] { border-color: #b5dfbe; background: #eff9f1; color: var(--success); }
+.auth-consent { display: grid; align-items: start; gap: 10px; grid-template-columns: auto minmax(0, 1fr); color: var(--muted); font-size: 13px; }
+.auth-consent input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--brand-action); }
+.auth-consent a,
+.auth-card-footer a { color: var(--brand-action); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.auth-card-footer { color: var(--muted); font-size: 13px; margin: 24px 0 0; }
+
+@media (max-width: 600px) {
+  .auth-fields-two { grid-template-columns: 1fr; }
+  .auth-form .button { justify-self: stretch; width: 100%; }
+  .auth-card-heading { flex-direction: column; }
+}

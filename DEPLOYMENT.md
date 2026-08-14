@@ -1,10 +1,12 @@
 # Despliegue
 
-## Estado y prohibiciones del ciclo 1
+## Estado actual
 
-Este documento es una guía de preparación. En el ciclo 1 **no se despliega** y
-no se modifica GitHub remoto, Dokploy, Supabase remoto ni DNS de `redtecnicos.cl`.
-Los dominios y nombres indicados son objetivos futuros, no recursos confirmados.
+La aplicación está desplegada como contenedor en Dokploy y el servicio Compose
+`supabase` está creado pero debe permanecer detenido hasta completar migración,
+variables, DNS y verificación. El dominio objetivo del gateway es
+`supabase.redtecnicos.cl`; Supabase Studio no debe publicarse sin una barrera
+administrativa adicional.
 
 No ejecutar ningún paso de staging o producción sin autorización expresa del
 propietario y sin completar las barreras de [SECURITY.md](./SECURITY.md).
@@ -72,13 +74,10 @@ detalladas, trazas ni mensajes de excepción. En fixtures, `database` puede ser
 
 ## Scripts seguros de base de datos
 
-Desde el ciclo 2 se proporcionarán equivalentes PowerShell y Bash:
+Se proporcionan equivalentes PowerShell y Bash en `scripts/supabase`:
 
-- `preflight`: valida ambiente, binarios, destino y migraciones.
-- `backup`: crea un backup cifrado y verifica integridad.
-- `db-push`: muestra dry-run por defecto.
-- `verify`: comprueba migraciones, RLS, buckets y health.
-- `generate-types`: actualiza tipos desde el esquema esperado.
+- `db-apply`: inventaría migraciones y muestra dry-run por defecto.
+- `promote-admin`: asigna `superadmin` a una cuenta Auth existente y registra el motivo.
 
 Staging requiere el argumento explícito `--apply`. Producción requiere una frase
 de confirmación exacta, destino verificado y evidencia de backup/restauración.

@@ -2,11 +2,12 @@
 
 ## Estado
 
-Este documento define el modelo objetivo. En el ciclo 1 no se ejecutan
-migraciones ni se conecta la aplicación a una base remota: los datos proceden de
-fixtures ficticios. La implementación SQL, el seed y las pruebas pgTAP forman
-parte del ciclo 2 y deben ejecutarse primero contra Supabase local o una instancia
-de desarrollo nueva y desechable.
+La primera migración ejecutable vive en
+`supabase/migrations/202608140001_initial_platform.sql`. Implementa Auth,
+extensión de usuarios, perfiles privados, proyección pública, solicitudes,
+evaluaciones, formación, galería, auditoría, rate limiting, siete buckets y RLS.
+La demo publicada continúa usando fixtures hasta desplegar, migrar y verificar
+la instancia dedicada.
 
 ## Convenciones
 
@@ -144,12 +145,12 @@ no sustituye políticas en operaciones que pueden ejecutarse con sesión de usua
 
 ## Storage
 
-Buckets objetivo:
+Buckets implementados (todos privados a nivel de bucket):
 
-- Públicos tras aprobación: `public-avatars`, `public-portfolios`.
-- Privados: `private-identities`, `private-certificates`,
-  `private-company-documents`, `private-complaints`.
-- Procesamiento: `private-quarantine`.
+- Imágenes con lectura RLS solo tras aprobación: `profile-images`, `gallery-images`.
+- Evidencia privada: `identity-documents`, `qualification-documents`,
+  `review-evidence`, `report-evidence`.
+- Procesamiento: `quarantine`.
 
 Las rutas usan UUID; el nombre original se conserva, si hace falta, solo como
 metadato privado saneado. Los buckets privados se entregan mediante URL firmada
@@ -170,14 +171,15 @@ Los plazos son configuración provisional y requieren revisión jurídica chilen
 Una solicitud de eliminación anonimiza o borra lo permitido y conserva solo la
 evidencia exigida por obligaciones legítimas, con acceso restringido.
 
-## Migraciones y verificación del ciclo 2
+## Migraciones y verificación
 
-1. Fijar Supabase CLI 2.109.1 y levantar un stack desechable.
-2. Crear migraciones por dominio, catálogos y buckets.
-3. Agregar seed independiente con 10 perfiles marcados `is_demo=true`.
-4. Probar constraints, transiciones, puntuación, RLS y Storage con pgTAP.
-5. Generar tipos TypeScript y comprobar que no existan diferencias sin migrar.
-6. Ejecutar backup y restauración de ensayo antes de usar staging.
+1. Supabase CLI permanece fijado en 2.109.1 para reproducibilidad local.
+2. Revisar el dry-run de `scripts/supabase/db-apply.ps1` o `.sh`.
+3. Aplicar primero sobre desarrollo/staging dedicado y ejecutar
+   `supabase/tests/001_security.test.sql` con pgTAP.
+4. Verificar RLS por rol, límite de tres fotografías y aislamiento de Storage.
+5. Generar tipos TypeScript desde el esquema migrado.
+6. Ejecutar backup y restauración de ensayo antes de producción.
 
 No usar `supabase link` contra el Supabase self-hosted ni ejecutar SQL en la
 instancia compartida actualmente existente.

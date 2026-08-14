@@ -13,8 +13,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/domain/directory";
+import type { AppDataSource } from "@/lib/supabase/config";
 
 interface MobileBottomNavigationProps {
+  authMode?: AppDataSource;
   role?: UserRole | null;
 }
 
@@ -25,7 +27,7 @@ interface MobileNavigationItem {
   isActive: (pathname: string) => boolean;
 }
 
-function privateEntry(role: UserRole | null): MobileNavigationItem {
+function privateEntry(role: UserRole | null, authMode: AppDataSource): MobileNavigationItem {
   if (role === "admin" || role === "moderator" || role === "superadmin") {
     return {
       href: "/admin",
@@ -45,14 +47,15 @@ function privateEntry(role: UserRole | null): MobileNavigationItem {
   }
 
   return {
-    href: "/acceso-demo",
+    href: (authMode === "supabase" ? "/ingresar" : "/acceso-demo") as Route,
     label: "Ingresar",
     icon: CircleUserRound,
-    isActive: (pathname) => pathname.startsWith("/acceso-demo"),
+    isActive: (pathname) => pathname.startsWith("/acceso-demo") || pathname.startsWith("/ingresar"),
   };
 }
 
 export function MobileBottomNavigation({
+  authMode = "fixtures",
   role = null,
 }: Readonly<MobileBottomNavigationProps>) {
   const pathname = usePathname();
@@ -77,7 +80,7 @@ export function MobileBottomNavigation({
       icon: Waypoints,
       isActive: (currentPathname) => currentPathname.startsWith("/como-funciona"),
     },
-    privateEntry(role),
+    privateEntry(role, authMode),
   ];
 
   return (

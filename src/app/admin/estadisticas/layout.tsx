@@ -1,10 +1,10 @@
-import { requireDemoRole } from "@/lib/auth/demo-session";
+import { requireAppRole } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminStatisticsLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  await requireDemoRole(["admin", "superadmin"], "/admin/estadisticas");
+  await requireAppRole(["admin", "superadmin"], "/admin/estadisticas");
   return children;
 }

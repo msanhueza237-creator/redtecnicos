@@ -33,6 +33,7 @@ interface ProfessionalPanelShellProps {
   children: React.ReactNode;
   displayName: string;
   initials: string;
+  isDemo: boolean;
 }
 
 function PanelNavigation({ mobile = false }: Readonly<{ mobile?: boolean }>) {
@@ -65,6 +66,7 @@ export function ProfessionalPanelShell({
   children,
   displayName,
   initials,
+  isDemo,
 }: Readonly<ProfessionalPanelShellProps>) {
   return (
     <section className="professional-panel-section">
@@ -74,14 +76,14 @@ export function ProfessionalPanelShell({
             <span className="avatar" aria-hidden="true">{initials}</span>
             <span>
               <strong>{displayName}</strong>
-              <small>Perfil técnico ficticio</small>
+              <small>{isDemo ? "Perfil técnico ficticio" : "Cuenta profesional"}</small>
             </span>
           </div>
           <PanelNavigation />
-          <form action="/api/demo-auth/logout" method="post">
+          <form action="/api/auth/logout" method="post">
             <button className="professional-panel-nav-link" type="submit">
               <LogOut aria-hidden="true" size={18} />
-              <span>Cerrar sesión demo</span>
+              <span>{isDemo ? "Cerrar sesión demo" : "Cerrar sesión"}</span>
             </button>
           </form>
         </aside>

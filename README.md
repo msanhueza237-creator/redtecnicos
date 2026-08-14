@@ -10,18 +10,19 @@ pagos en esta primera versión.
 
 ## Estado del proyecto
 
-El proyecto se encuentra en el **ciclo 1: fundación y experiencia local**.
+La demo pública está desplegada en Dokploy y el repositorio ya incorpora la base
+de **Supabase Auth, roles y RLS**.
 
 - La aplicación funciona con `APP_DATA_SOURCE=fixtures` y 10 perfiles
   inequívocamente ficticios.
-- No requiere secretos, una cuenta Supabase ni conexión a servicios externos.
+- En modo fixtures no requiere secretos ni conexión a servicios externos.
 - Los perfiles demo deben mostrar “Perfil de demostración” y nunca representan
   personas, empresas, certificados, teléfonos o direcciones reales.
-- Supabase, RLS, Storage, correo, CAPTCHA y Dokploy se documentan como
-  arquitectura objetivo; la integración continua local/CI ya valida el shell
-  y las demás capacidades se implementan en ciclos posteriores.
-- Durante este ciclo está prohibido modificar DNS de `redtecnicos.cl`, GitHub
-  remoto, Dokploy o cualquier Supabase remoto.
+- Las migraciones, buckets, login y alta segura de técnicos están implementados.
+  El modo Supabase se activa únicamente después de desplegar, migrar y verificar
+  la instancia dedicada.
+- Turnstile, SMTP, ClamAV, 2FA administrativa y revisión jurídica continúan
+  siendo barreras antes de recibir datos reales.
 
 ## Tecnologías objetivo
 
@@ -59,8 +60,33 @@ npm run build
 npm run test:e2e
 ```
 
-No se debe configurar una URL o una clave de un Supabase compartido para probar
-el ciclo 1. Consultar [SECURITY.md](./SECURITY.md) antes de agregar integraciones.
+No se debe configurar una URL o una clave de un Supabase compartido. Consultar
+[SECURITY.md](./SECURITY.md) antes de habilitar datos persistentes.
+
+## Modo Supabase dedicado
+
+El cliente SSR usa `@supabase/ssr`, cookies rotativas y validación del JWT:
+
+```dotenv
+APP_DATA_SOURCE=supabase
+NEXT_PUBLIC_SUPABASE_URL=https://supabase.redtecnicos.cl
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+# Compatibilidad con self-hosted que todavía entrega anon key:
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+Las migraciones están en `supabase/migrations`. Los scripts son dry-run por
+defecto y no utilizan `supabase link`:
+
+```powershell
+.\scripts\supabase\db-apply.ps1 -Environment staging
+.\scripts\supabase\db-apply.ps1 -Environment staging -Apply
+```
+
+Las cuentas usan correo y contraseña de Supabase Auth. El registro público solo
+origina roles `technician` o `company`; `moderator`, `admin` y `superadmin` se
+asignan con una conexión PostgreSQL privilegiada y motivo de auditoría. No se
+crean llaves API individuales para técnicos.
 
 ## Accesos privados de demostración
 
@@ -81,10 +107,9 @@ seguridad: el acceso efectivo se valida en el servidor antes de renderizar cada
 
 Este acceso solo funciona con `APP_DATA_SOURCE=fixtures` y
 `DEMO_AUTH_ENABLED=true`. No es el login productivo, no crea usuarios y no
-autoriza conectar datos reales. Antes de cambiar el origen de datos, el
-resolvedor de sesión del servidor se debe reemplazar por Supabase Auth con
-correo/contraseña, rol administrativo en base de datos, RLS y 2FA. Solo después
-de esa validación el servidor podrá entregar el enlace **Administración**.
+autoriza conectar datos reales. Al cambiar a `APP_DATA_SOURCE=supabase`, el
+shell usa Supabase Auth y el rol almacenado en `app_users`. Solo una sesión
+`moderator`, `admin` o `superadmin` recibe el enlace **Administración**.
 
 ### Panel profesional funcional
 
@@ -150,9 +175,9 @@ La experiencia objetivo comprende:
 | --- | --- | --- | --- |
 | Local | feature/local | Fixtures o Supabase local desechable | `localhost:3000` |
 | Staging | `develop` | Supabase dedicado de staging | `staging.redtecnicos.cl` |
-| Producción | `main` | Supabase dedicado de producción | `redtecnicos.cl` |
+| Producción | `main` | Supabase self-hosted dedicado | `redtecnicos.cl` + `supabase.redtecnicos.cl` |
 
-Staging y producción no están creados ni autorizados en el ciclo 1.
+La activación de datos reales continúa bloqueada por las barreras de seguridad y legales.
 
 ## Licencia y revisión legal
 

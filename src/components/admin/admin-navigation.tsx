@@ -17,7 +17,7 @@ import {
   UserRoundSearch,
   UsersRound,
 } from "lucide-react";
-import type { DemoRole } from "@/lib/auth/demo-session";
+import type { AdminRole } from "@/lib/auth/roles";
 import "./admin.css";
 
 const items = [
@@ -35,10 +35,10 @@ const items = [
   { href: "/admin/configuracion", label: "Configuración", icon: Settings, roles: ["admin", "superadmin"] },
 ] as const;
 
-export function AdminNavigation({ role }: Readonly<{ role: DemoRole }>) {
+export function AdminNavigation({ role }: Readonly<{ role: AdminRole }>) {
   const pathname = usePathname();
   const visibleItems = items.filter((item) =>
-    (item.roles as readonly DemoRole[]).includes(role),
+    (item.roles as readonly AdminRole[]).includes(role),
   );
 
   return (

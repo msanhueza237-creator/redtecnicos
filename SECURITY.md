@@ -2,10 +2,10 @@
 
 ## Alcance y postura actual
 
-El ciclo 1 opera exclusivamente con fixtures ficticios, sin credenciales ni
-conexiones remotas. Encontrar una URL o clave local no autoriza su uso. La
-instancia Supabase previamente observada comparte tablas con otra aplicación y
-no tiene el aislamiento/RLS requerido; queda explícitamente fuera de alcance.
+La demo operativa continúa con fixtures ficticios. El repositorio ya contiene
+Supabase Auth, RLS y scripts para una instancia self-hosted exclusiva de Red
+Técnicos Chile. La instancia compartida observada anteriormente continúa fuera
+de alcance y nunca debe reutilizarse.
 
 No deben ejecutarse despliegues, migraciones, cambios DNS, cambios en Dokploy,
 acciones sobre GitHub remoto ni llamadas a Supabase remoto sin autorización
@@ -47,15 +47,19 @@ plausibles de terceros.
   en layouts del servidor. `DEMO_AUTH_ENABLED=false` o cualquier origen distinto
   de `fixtures` la deshabilita.
 - La sesión demo no representa una cuenta ni sustituye autenticación real. El
-  acceso a datos persistentes queda bloqueado hasta integrar Supabase Auth, RLS,
-  correo verificado y 2FA administrativa. En una compilación de fixtures fuera
+  modo Supabase ya integra Auth y RLS, pero los datos reales quedan bloqueados
+  hasta configurar correo verificado y 2FA administrativa. En una compilación de fixtures fuera
   del desarrollo local se exige `DEMO_AUTH_SECRET` de al menos 32 bytes.
 - La navegación pública nunca enlaza el acceso administrativo demo. Esto mejora
   su descubribilidad controlada durante la revisión, pero no es una medida de
   autorización. La guarda del servidor sigue siendo obligatoria y, con datos
   reales, el enlace **Administración** solo se renderizará después de resolver
   una sesión Supabase válida y su rol desde datos controlados por el servidor.
-- Supabase Auth con verificación de correo y recuperación que no enumera cuentas.
+- Supabase Auth valida el JWT con `getClaims()` y resuelve el rol desde
+  `app_users`; no confía en `raw_user_meta_data` para autorizar.
+- El registro solo asigna `technician` o `company`. Los roles de personal se
+  promueven mediante SQL privilegiado, con motivo y auditoría.
+- Verificación de correo y recuperación deben responder sin enumerar cuentas.
 - Cookies `Secure`, `HttpOnly` cuando aplique y `SameSite=Lax` o más estricto.
 - Rotación/invalidez de sesión después de cambios sensibles.
 - 2FA obligatorio para administradores antes de producción, aunque el brief lo

@@ -3,10 +3,8 @@ import Link from "next/link";
 import { ArrowUpRight, LogOut, ShieldCheck } from "lucide-react";
 import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { Brand } from "@/components/site-shell";
-import {
-  requireDemoRole,
-  type DemoRole,
-} from "@/lib/auth/demo-session";
+import { requireAppRole } from "@/lib/auth/session";
+import type { AuthenticatedRole } from "@/lib/auth/roles";
 import "@/components/admin/admin.css";
 
 export const metadata: Metadata = {
@@ -16,8 +14,9 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const roleLabels: Record<DemoRole, string> = {
+const roleLabels: Record<AuthenticatedRole, string> = {
   technician: "Técnico",
+  company: "Empresa",
   moderator: "Moderador",
   admin: "Administrador",
   superadmin: "Superadministrador",
@@ -26,7 +25,7 @@ const roleLabels: Record<DemoRole, string> = {
 export default async function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await requireDemoRole(
+  const session = await requireAppRole(
     ["moderator", "admin", "superadmin"],
     "/admin",
   );
@@ -41,10 +40,10 @@ export default async function AdminLayout({
         </div>
         <div className="admin-session">
           <span className="admin-session-copy">
-            <span>Sesión demo</span>
+            <span>{session.source === "demo" ? "Sesión demo" : "Sesión segura"}</span>
             <strong>{roleLabels[session.role]}</strong>
           </span>
-          <form action="/api/demo-auth/logout?area=administracion" method="post">
+          <form action="/api/auth/logout?area=administracion" method="post">
             <button className="admin-signout" type="submit">
               <LogOut aria-hidden="true" size={16} />
               Cerrar sesión
@@ -59,7 +58,7 @@ export default async function AdminLayout({
             <span className="icon-box"><ShieldCheck aria-hidden="true" size={20} /></span>
             <span>
               <strong>Centro de control</strong>
-              <small>Datos 100% ficticios</small>
+              <small>{session.source === "demo" ? "Datos 100% ficticios" : "Acceso por roles"}</small>
             </span>
           </div>
           <AdminNavigation role={session.role} />
@@ -68,7 +67,7 @@ export default async function AdminLayout({
               Volver al sitio público
               <ArrowUpRight aria-hidden="true" size={15} />
             </Link>
-            <p>Las acciones de este prototipo no modifican datos reales.</p>
+            <p>{session.source === "demo" ? "Las acciones de este prototipo no modifican datos reales." : "Las acciones quedan sujetas a permisos y auditoría."}</p>
           </div>
         </aside>
 

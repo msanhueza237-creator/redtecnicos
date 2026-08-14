@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Public_Sans } from "next/font/google";
 import "./globals.css";
 import { AppChrome } from "@/components/app-chrome";
-import { getDemoSession } from "@/lib/auth/demo-session";
+import { getAppSession } from "@/lib/auth/session";
+import { getAppDataSource } from "@/lib/supabase/config";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
@@ -25,12 +26,13 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const session = await getDemoSession();
+  const session = await getAppSession();
+  const authMode = getAppDataSource();
 
   return (
     <html lang="es-CL" className={publicSans.variable} data-scroll-behavior="smooth">
       <body>
-        <AppChrome sessionRole={session?.role ?? null}>{children}</AppChrome>
+        <AppChrome authMode={authMode} sessionRole={session?.role ?? null}>{children}</AppChrome>
       </body>
     </html>
   );
