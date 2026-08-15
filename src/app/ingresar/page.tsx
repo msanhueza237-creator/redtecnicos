@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { LoginForm } from "@/components/auth/login-form";
-import { isSupabaseConfigured, isSupabaseMode } from "@/lib/supabase/config";
+import { isSupabaseAuthMode, isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata: Metadata = {
   title: "Ingreso seguro",
@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const nextPath = first(params.next);
   const registered = first(params.registro) === "confirmar-correo";
   const loggedOut = first(params.logout) === "1";
-  const ready = isSupabaseMode() && isSupabaseConfigured();
+  const ready = isSupabaseAuthMode() && isSupabaseConfigured();
 
   return (
     <>

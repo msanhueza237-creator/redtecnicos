@@ -7,7 +7,7 @@ import {
   isAuthenticatedRole,
   roleLandingPath,
 } from "@/lib/auth/roles";
-import { isSupabaseMode } from "@/lib/supabase/config";
+import { isSupabaseAuthMode } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
 export interface AuthActionState {
@@ -60,7 +60,7 @@ export async function loginAction(
   _previousState: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  if (!isSupabaseMode()) return authUnavailable();
+  if (!isSupabaseAuthMode()) return authUnavailable();
 
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
@@ -113,7 +113,7 @@ export async function registerProfessionalAction(
   _previousState: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
-  if (!isSupabaseMode()) return authUnavailable();
+  if (!isSupabaseAuthMode()) return authUnavailable();
 
   const parsed = registerSchema.safeParse({
     fullName: formData.get("fullName"),

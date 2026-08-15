@@ -1,9 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getPublicSupabaseConfig, isSupabaseConfigured, isSupabaseMode } from "./config";
+import {
+  getPublicSupabaseConfig,
+  isSupabaseAuthMode,
+  isSupabaseConfigured,
+} from "./config";
 
 export async function refreshSupabaseSession(request: NextRequest) {
-  if (!isSupabaseMode() || !isSupabaseConfigured()) {
+  if (!isSupabaseAuthMode() || !isSupabaseConfigured()) {
     return NextResponse.next({ request });
   }
 

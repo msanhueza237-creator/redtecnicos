@@ -3,7 +3,7 @@ import { Public_Sans } from "next/font/google";
 import "./globals.css";
 import { AppChrome } from "@/components/app-chrome";
 import { getAppSession } from "@/lib/auth/session";
-import { getAppDataSource } from "@/lib/supabase/config";
+import { getAppDataSource, getAuthDataSource } from "@/lib/supabase/config";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
@@ -27,12 +27,19 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await getAppSession();
-  const authMode = getAppDataSource();
+  const dataSource = getAppDataSource();
+  const authSource = getAuthDataSource();
 
   return (
     <html lang="es-CL" className={publicSans.variable} data-scroll-behavior="smooth">
       <body>
-        <AppChrome authMode={authMode} sessionRole={session?.role ?? null}>{children}</AppChrome>
+        <AppChrome
+          authSource={authSource}
+          dataSource={dataSource}
+          sessionRole={session?.role ?? null}
+        >
+          {children}
+        </AppChrome>
       </body>
     </html>
   );

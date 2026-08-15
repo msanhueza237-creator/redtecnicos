@@ -10,7 +10,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import {
   isSupabaseConfigured,
-  isSupabaseMode,
+  isSupabaseAuthMode,
 } from "@/lib/supabase/config";
 
 export interface AppSession {
@@ -22,7 +22,7 @@ export interface AppSession {
 }
 
 export async function getAppSession(): Promise<AppSession | null> {
-  if (!isSupabaseMode()) {
+  if (!isSupabaseAuthMode()) {
     const demo = await getDemoSession();
     return demo
       ? {
@@ -84,7 +84,7 @@ export async function requireAppRole<const Role extends AuthenticatedRole>(
   }
 
   const safePath = safeRequestedPath(requestedPath);
-  if (!isSupabaseMode() && isDemoAuthEnabled()) {
+  if (!isSupabaseAuthMode() && isDemoAuthEnabled()) {
     const demoEntry = safePath.startsWith("/admin")
       ? "/acceso-demo/administracion"
       : "/acceso-demo";

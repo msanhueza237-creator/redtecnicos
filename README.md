@@ -68,7 +68,8 @@ No se debe configurar una URL o una clave de un Supabase compartido. Consultar
 El cliente SSR usa `@supabase/ssr`, cookies rotativas y validación del JWT:
 
 ```dotenv
-APP_DATA_SOURCE=supabase
+APP_DATA_SOURCE=fixtures
+AUTH_DATA_SOURCE=supabase
 NEXT_PUBLIC_SUPABASE_URL=https://supabase.redtecnicos.cl
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 # Compatibilidad con self-hosted que todavía entrega anon key:
@@ -105,9 +106,10 @@ horas de vigencia. Ocultar la ruta administrativa no constituye un control de
 seguridad: el acceso efectivo se valida en el servidor antes de renderizar cada
 área privada.
 
-Este acceso solo funciona con `APP_DATA_SOURCE=fixtures` y
+Este acceso solo funciona con `APP_DATA_SOURCE=fixtures`,
+`AUTH_DATA_SOURCE=fixtures` y
 `DEMO_AUTH_ENABLED=true`. No es el login productivo, no crea usuarios y no
-autoriza conectar datos reales. Al cambiar a `APP_DATA_SOURCE=supabase`, el
+autoriza conectar datos reales. Al cambiar `AUTH_DATA_SOURCE` a `supabase`, el
 shell usa Supabase Auth y el rol almacenado en `app_users`. Solo una sesión
 `moderator`, `admin` o `superadmin` recibe el enlace **Administración**.
 

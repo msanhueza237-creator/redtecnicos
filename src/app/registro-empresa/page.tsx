@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { RegistrationWizard } from "@/components/registration-wizard";
 import { ProfessionalAccountForm } from "@/components/auth/professional-account-form";
-import { isSupabaseMode } from "@/lib/supabase/config";
+import { isSupabaseAuthMode } from "@/lib/supabase/config";
 
 export const metadata: Metadata = { title: "Registro para empresas" };
 
 export default function CompanyRegistrationPage() {
-  const supabaseMode = isSupabaseMode();
+  const supabaseMode = isSupabaseAuthMode();
 
   return (
     <>

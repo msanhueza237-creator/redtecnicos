@@ -41,6 +41,10 @@ backups, documentos privados ni herramientas administrativas innecesarias.
 
 ## Variables
 
+`AUTH_DATA_SOURCE` permite activar Supabase Auth antes de migrar los mÃ³dulos
+pÃºblicos que todavÃ­a funcionan con fixtures. En esa transiciÃ³n,
+`APP_DATA_SOURCE=fixtures` mantiene claramente rotulados los datos demo.
+
 El inventario definitivo vive en `.env.example`. Se esperan, por categoría:
 
 - Aplicación: entorno, URL, versión, fecha de build y origen de datos.

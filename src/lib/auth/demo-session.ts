@@ -3,6 +3,7 @@ import type { Route } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { UserRole } from "@/domain/directory";
+import { getAuthDataSource } from "@/lib/supabase/config";
 
 export const DEMO_SESSION_COOKIE = "red_tecnicos_demo_session";
 export const DEMO_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
@@ -55,6 +56,7 @@ export function isDemoRole(value: unknown): value is DemoRole {
 export function isDemoAuthEnabled(): boolean {
   return (
     process.env.APP_DATA_SOURCE === "fixtures" &&
+    getAuthDataSource() === "fixtures" &&
     process.env.DEMO_AUTH_ENABLED !== "false"
   );
 }

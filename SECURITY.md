@@ -46,6 +46,9 @@ plausibles de terceros.
   La cookie es `HttpOnly`, `SameSite=Strict`, dura ocho horas y el rol se valida
   en layouts del servidor. `DEMO_AUTH_ENABLED=false` o cualquier origen distinto
   de `fixtures` la deshabilita.
+- `AUTH_DATA_SOURCE=supabase` deshabilita la sesiÃ³n demo y activa cuentas y
+  roles reales aunque `APP_DATA_SOURCE=fixtures` mantenga temporalmente los
+  datos pÃºblicos de demostraciÃ³n. Esto no habilita persistencia de contactos.
 - La sesión demo no representa una cuenta ni sustituye autenticación real. El
   modo Supabase ya integra Auth y RLS, pero los datos reales quedan bloqueados
   hasta configurar correo verificado y 2FA administrativa. En una compilación de fixtures fuera

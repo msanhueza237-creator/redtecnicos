@@ -2,7 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { Menu, Snowflake } from "lucide-react";
 import type { UserRole } from "@/domain/directory";
-import type { AppDataSource } from "@/lib/supabase/config";
+import type { AuthDataSource } from "@/lib/supabase/config";
 import { isAdminRole } from "@/lib/auth/roles";
 
 const navigation: Array<{ href: Route; label: string }> = [
@@ -13,7 +13,7 @@ const navigation: Array<{ href: Route; label: string }> = [
 
 function privateAreaLink(
   role: UserRole | null,
-  authMode: AppDataSource,
+  authSource: AuthDataSource,
 ): { href: Route; label: string } {
   if (role === "technician" || role === "company") {
     return { href: "/panel", label: "Panel profesional" };
@@ -23,7 +23,7 @@ function privateAreaLink(
     return { href: "/admin", label: "Administración" };
   }
 
-  return authMode === "supabase"
+  return authSource === "supabase"
     ? { href: "/ingresar" as Route, label: "Ingresar" }
     : { href: "/acceso-demo", label: "Ingreso profesional" };
 }
@@ -51,10 +51,10 @@ export function Brand() {
 }
 
 export function SiteHeader({
-  authMode,
+  authSource,
   sessionRole,
-}: Readonly<{ authMode: AppDataSource; sessionRole: UserRole | null }>) {
-  const privateArea = privateAreaLink(sessionRole, authMode);
+}: Readonly<{ authSource: AuthDataSource; sessionRole: UserRole | null }>) {
+  const privateArea = privateAreaLink(sessionRole, authSource);
 
   return (
     <header className="site-header">
@@ -97,10 +97,10 @@ export function SiteHeader({
 }
 
 export function SiteFooter({
-  authMode,
+  authSource,
   sessionRole,
-}: Readonly<{ authMode: AppDataSource; sessionRole: UserRole | null }>) {
-  const privateArea = privateAreaLink(sessionRole, authMode);
+}: Readonly<{ authSource: AuthDataSource; sessionRole: UserRole | null }>) {
+  const privateArea = privateAreaLink(sessionRole, authSource);
 
   return (
     <footer className="site-footer">

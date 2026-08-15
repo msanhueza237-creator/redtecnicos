@@ -1,4 +1,5 @@
 export type AppDataSource = "fixtures" | "supabase";
+export type AuthDataSource = "fixtures" | "supabase";
 
 export function getAppDataSource(): AppDataSource {
   return process.env.APP_DATA_SOURCE === "supabase" ? "supabase" : "fixtures";
@@ -6,6 +7,20 @@ export function getAppDataSource(): AppDataSource {
 
 export function isSupabaseMode(): boolean {
   return getAppDataSource() === "supabase";
+}
+
+/**
+ * Permite activar Supabase Auth antes de migrar todos los mÃ³dulos pÃºblicos.
+ * Si AUTH_DATA_SOURCE no estÃ¡ definido se conserva el comportamiento anterior.
+ */
+export function getAuthDataSource(): AuthDataSource {
+  if (process.env.AUTH_DATA_SOURCE === "supabase") return "supabase";
+  if (process.env.AUTH_DATA_SOURCE === "fixtures") return "fixtures";
+  return getAppDataSource();
+}
+
+export function isSupabaseAuthMode(): boolean {
+  return getAuthDataSource() === "supabase";
 }
 
 export interface PublicSupabaseConfig {
