@@ -7,16 +7,9 @@ import {
   isAuthenticatedRole,
   roleLandingPath,
 } from "@/lib/auth/roles";
+import type { AuthActionState } from "@/lib/auth/action-state";
 import { isSupabaseAuthMode } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
-
-export interface AuthActionState {
-  status: "idle" | "error" | "success";
-  message?: string;
-  fieldErrors?: Partial<Record<"email" | "password" | "fullName" | "terms", string[]>>;
-}
-
-export const initialAuthActionState: AuthActionState = { status: "idle" };
 
 const loginSchema = z.object({
   email: z.email("Ingresa un correo válido.").trim().toLowerCase(),

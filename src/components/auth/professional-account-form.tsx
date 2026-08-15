@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { ShieldCheck, UserPlus } from "lucide-react";
-import {
-  initialAuthActionState,
-  registerProfessionalAction,
-} from "@/app/ingresar/actions";
+import { registerProfessionalAction } from "@/app/ingresar/actions";
+import { initialAuthActionState } from "@/lib/auth/action-state";
 
 export function ProfessionalAccountForm({
   kind,

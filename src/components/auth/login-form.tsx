@@ -2,10 +2,8 @@
 
 import { useActionState } from "react";
 import { LogIn } from "lucide-react";
-import {
-  initialAuthActionState,
-  loginAction,
-} from "@/app/ingresar/actions";
+import { loginAction } from "@/app/ingresar/actions";
+import { initialAuthActionState } from "@/lib/auth/action-state";
 
 export function LoginForm({ nextPath }: Readonly<{ nextPath?: string }>) {
   const [state, action, pending] = useActionState(loginAction, initialAuthActionState);
