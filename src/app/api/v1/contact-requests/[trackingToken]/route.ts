@@ -5,6 +5,8 @@ import {
   trackingTokenSchema,
 } from "@/domain/contact-request";
 import { getDemoContactRequestTracking } from "@/lib/contact-requests/demo-store";
+import { getLiveContactRequestTracking } from "@/lib/contact-requests/repository";
+import { isSupabaseMode } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,35 +18,34 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ trackingToken: string }> },
 ) {
-  if (process.env.APP_DATA_SOURCE !== "fixtures") {
+  const parsedToken = trackingTokenSchema.safeParse((await params).trackingToken);
+  let data: ContactRequestTracking | undefined;
+  try {
+    data = parsedToken.success
+      ? isSupabaseMode()
+        ? await getLiveContactRequestTracking(parsedToken.data)
+        : getDemoContactRequestTracking(parsedToken.data)
+      : undefined;
+  } catch {
     return NextResponse.json(
-      {
-        data: null,
-        error: { code: "FIXTURE_MODE_REQUIRED", message: "El seguimiento local solo está disponible en modo demo." },
-        meta: null,
-      } satisfies ApiEnvelope<never>,
+      { data: null, error: { code: "TRACKING_UNAVAILABLE", message: "El seguimiento no está disponible temporalmente." }, meta: null } satisfies ApiEnvelope<never>,
       { status: 503, headers: privateResponseHeaders },
     );
   }
-
-  const parsedToken = trackingTokenSchema.safeParse((await params).trackingToken);
-  const data = parsedToken.success
-    ? getDemoContactRequestTracking(parsedToken.data)
-    : undefined;
 
   if (!data) {
     return NextResponse.json(
       {
         data: null,
         error: { code: "REQUEST_NOT_FOUND", message: "El enlace de seguimiento no es válido o ya no está disponible." },
-        meta: fixturesMeta,
-      } satisfies ApiEnvelope<never, typeof fixturesMeta>,
+        meta: isSupabaseMode() ? { source: "supabase" } : fixturesMeta,
+      } satisfies ApiEnvelope<never>,
       { status: 404, headers: privateResponseHeaders },
     );
   }
 
   return NextResponse.json(
-    { data, error: null, meta: fixturesMeta } satisfies ApiEnvelope<ContactRequestTracking, typeof fixturesMeta>,
+    { data, error: null, meta: isSupabaseMode() ? { source: "supabase" } : fixturesMeta } satisfies ApiEnvelope<ContactRequestTracking>,
     { headers: privateResponseHeaders },
   );
 }

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { ApiEnvelope } from "@/domain/contact-request";
 import { createReviewSchema, type ReviewReceipt } from "@/domain/review";
 import { createDemoReview } from "@/lib/contact-requests/demo-store";
+import { createLiveReview } from "@/lib/contact-requests/repository";
+import { isSupabaseMode } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,17 +13,6 @@ const privateResponseHeaders = { "Cache-Control": "private, no-store, max-age=0"
 const MAX_REQUEST_BODY_BYTES = 8 * 1024;
 
 export async function POST(request: Request) {
-  if (process.env.APP_DATA_SOURCE !== "fixtures") {
-    return NextResponse.json(
-      {
-        data: null,
-        error: { code: "FIXTURE_MODE_REQUIRED", message: "Las evaluaciones locales solo están disponibles en modo demo." },
-        meta: null,
-      } satisfies ApiEnvelope<never>,
-      { status: 503, headers: privateResponseHeaders },
-    );
-  }
-
   const contentLength = Number(request.headers.get("content-length") ?? "0");
   if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BODY_BYTES) {
     return NextResponse.json(
@@ -73,6 +64,36 @@ export async function POST(request: Request) {
       } satisfies ApiEnvelope<never, typeof fixturesMeta>,
       { status: 400, headers: privateResponseHeaders },
     );
+  }
+
+  if (isSupabaseMode()) {
+    try {
+      const data = await createLiveReview(parsed.data);
+      return NextResponse.json(
+        { data, error: null, meta: { source: "supabase", moderation: "pending" } } satisfies ApiEnvelope<ReviewReceipt>,
+        { status: 201, headers: privateResponseHeaders },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      const code = message.includes("REQUEST_NOT_FOUND")
+        ? "REQUEST_NOT_FOUND"
+        : message.includes("REVIEW_ALREADY_SUBMITTED")
+          ? "REVIEW_ALREADY_SUBMITTED"
+          : message.includes("REQUEST_NOT_ELIGIBLE")
+            ? "REQUEST_NOT_ELIGIBLE"
+            : "REVIEW_UNAVAILABLE";
+      const status = code === "REQUEST_NOT_FOUND" ? 404 : code === "REVIEW_UNAVAILABLE" ? 503 : 409;
+      const responseMessage = {
+        REQUEST_NOT_FOUND: "El enlace de seguimiento no es válido o ya no está disponible.",
+        REQUEST_NOT_ELIGIBLE: "Confirma el trabajo y verifica tu correo antes de evaluar.",
+        REVIEW_ALREADY_SUBMITTED: "Esta solicitud ya tiene una evaluación registrada.",
+        REVIEW_UNAVAILABLE: "No pudimos registrar la evaluación. Intenta nuevamente.",
+      }[code];
+      return NextResponse.json(
+        { data: null, error: { code, message: responseMessage }, meta: { source: "supabase" } } satisfies ApiEnvelope<never>,
+        { status, headers: privateResponseHeaders },
+      );
+    }
   }
 
   const result = createDemoReview(parsed.data);

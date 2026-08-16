@@ -50,7 +50,7 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
             <div className="profile-main-identity">
               <div className="avatar profile-avatar" aria-hidden="true">{professional.initials}</div>
               <div>
-                <span className="demo-pill">Perfil de demostración — {professional.kind === "company" ? "empresa" : "técnico"} ficticio</span>
+                <span className="demo-pill">{professional.isDemo ? `Perfil de demostración — ${professional.kind === "company" ? "empresa" : "técnico"} ficticio` : professional.status === "verified" ? "Perfil verificado" : "Perfil publicado"}</span>
                 <h1>{professional.displayName}</h1>
                 <p className="profile-headline">{professional.headline}</p>
                 <div className="profile-quick-meta">
@@ -68,7 +68,7 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
             <div className="profile-metrics" aria-label="Resumen del perfil">
               <div>
                 <strong><Star size={18} fill="currentColor" aria-hidden="true" /> {professional.rating.toFixed(1)}</strong>
-                <span>{professional.reviewCount} evaluaciones de ejemplo</span>
+                <span>{professional.reviewCount} evaluaciones publicadas</span>
               </div>
               <div>
                 <strong>{professional.score}/100</strong>
@@ -132,7 +132,7 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
                   ))}
                 </div>
               ) : (
-                <p className="muted-copy">Este perfil ficticio todavía no muestra formación revisada.</p>
+                <p className="muted-copy">Este perfil todavía no muestra formación revisada.</p>
               )}
             </section>
 
@@ -140,7 +140,7 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
               <div className="profile-block-heading">
                 <div>
                   <h2 id="portfolio-title">Trabajos realizados</h2>
-                  <p>Imágenes ilustrativas de demostración; no corresponden a trabajos atribuibles a una persona real.</p>
+                  <p>{professional.isDemo ? "Imágenes ilustrativas de demostración; no corresponden a trabajos atribuibles a una persona real." : "Fotografías declaradas por el profesional y aprobadas para publicación."}</p>
                 </div>
                 <span className="professional-panel-status is-approved">{professional.portfolio.length}/3 revisadas</span>
               </div>
@@ -148,17 +148,17 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
                 {professional.portfolio.map((item) => (
                   <article className="portfolio-item" key={item.id}>
                     <Image alt={item.alt} height={512} sizes="(max-width: 700px) 100vw, 33vw" src={item.imageSrc} width={768} />
-                    <div><strong>{item.title}</strong><span>{item.category} · Demostración</span></div>
+                    <div><strong>{item.title}</strong><span>{item.category}{professional.isDemo ? " · Demostración" : ""}</span></div>
                   </article>
                 ))}
               </div>
             </section>
 
             <section className="profile-block" aria-labelledby="reviews-title">
-              <h2 id="reviews-title">Evaluaciones asociadas a contactos de ejemplo</h2>
+              <h2 id="reviews-title">Evaluaciones asociadas a solicitudes completadas</h2>
               <div className="review-preview">
                 <div className="review-score"><strong>{professional.rating.toFixed(1)}</strong><span>de 5</span></div>
-                <div><div className="rating"><Star size={17} fill="currentColor" aria-hidden="true" /> Calificación simulada</div><p>En la versión funcional solo podrá evaluar quien tenga una solicitud completada y correo verificado.</p></div>
+                <div><div className="rating"><Star size={17} fill="currentColor" aria-hidden="true" /> {professional.isDemo ? "Calificación simulada" : "Calificación verificada"}</div><p>Solo puede evaluar quien tenga una solicitud completada y el correo de contacto verificado.</p></div>
               </div>
             </section>
 
@@ -176,6 +176,7 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
               professionalKind={professional.kind}
               services={professional.services}
               communes={professional.communes}
+              isDemo={professional.isDemo}
             />
           </aside>
         </div>

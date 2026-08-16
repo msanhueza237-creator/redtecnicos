@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(30);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -75,6 +75,38 @@ select function_privs_are(
   'authenticated',
   array['EXECUTE'],
   'authenticated puede invocar la función, que valida el rol internamente'
+);
+
+select has_column('public', 'contact_requests', 'email_verification_token_hash', 'Las solicitudes permiten verificar el correo con un token separado');
+select has_column('public', 'reviews', 'would_recommend', 'Las evaluaciones conservan la recomendación del cliente');
+
+select has_function(
+  'public',
+  'create_public_contact_request',
+  array['uuid','text','text','text','text','text','text','text','text','text','text','text'],
+  'Existe la creación pública segura de solicitudes'
+);
+select function_privs_are(
+  'public',
+  'create_public_contact_request',
+  array['uuid','text','text','text','text','text','text','text','text','text','text','text'],
+  'anon', array['EXECUTE'],
+  'anon solo puede crear solicitudes mediante la función validada'
+);
+select table_privs_are('public', 'contact_requests', 'anon', array[]::text[], 'anon no puede insertar directamente en solicitudes');
+
+select has_function('public', 'get_public_contact_request_by_token', array['text'], 'Existe el seguimiento por token opaco');
+select function_privs_are('public', 'get_public_contact_request_by_token', array['text'], 'anon', array['EXECUTE'], 'anon puede usar un token opaco para seguimiento');
+select has_function('public', 'verify_contact_request_email', array['text','text'], 'Existe la verificación separada de correo');
+select has_function('public', 'complete_public_contact_request', array['text'], 'Existe la confirmación de trabajo por token');
+select has_function('public', 'create_public_review', array['text','integer','text','boolean'], 'Existe la evaluación ligada a una solicitud');
+select has_function('public', 'update_owned_contact_request_status', array['uuid','public.contact_request_state'], 'Existe la actualización de estado del propietario');
+select function_privs_are('public', 'update_owned_contact_request_status', array['uuid','public.contact_request_state'], 'anon', array[]::text[], 'anon no puede actualizar el historial profesional');
+select function_privs_are('public', 'update_owned_contact_request_status', array['uuid','public.contact_request_state'], 'authenticated', array['EXECUTE'], 'el profesional autenticado invoca la transición validada');
+
+select ok(
+  not has_table_privilege('anon', 'public.contact_requests', 'INSERT'),
+  'la inserción directa permanece revocada'
 );
 
 select * from finish();

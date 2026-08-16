@@ -5,6 +5,8 @@ import {
   trackingTokenSchema,
 } from "@/domain/contact-request";
 import { completeDemoContactRequest } from "@/lib/contact-requests/demo-store";
+import { completeLiveContactRequest } from "@/lib/contact-requests/repository";
+import { isSupabaseMode } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,17 +18,6 @@ export async function POST(
   _request: Request,
   { params }: { params: Promise<{ trackingToken: string }> },
 ) {
-  if (process.env.APP_DATA_SOURCE !== "fixtures") {
-    return NextResponse.json(
-      {
-        data: null,
-        error: { code: "FIXTURE_MODE_REQUIRED", message: "Esta acción solo está disponible en modo demo." },
-        meta: null,
-      } satisfies ApiEnvelope<never>,
-      { status: 503, headers: privateResponseHeaders },
-    );
-  }
-
   const parsedToken = trackingTokenSchema.safeParse((await params).trackingToken);
   if (!parsedToken.success) {
     return NextResponse.json(
@@ -37,6 +28,32 @@ export async function POST(
       } satisfies ApiEnvelope<never, typeof fixturesMeta>,
       { status: 404, headers: privateResponseHeaders },
     );
+  }
+
+  if (isSupabaseMode()) {
+    try {
+      const data = await completeLiveContactRequest(parsedToken.data);
+      if (!data) throw new Error("REQUEST_NOT_FOUND");
+      return NextResponse.json(
+        { data, error: null, meta: { source: "supabase" } } satisfies ApiEnvelope<ContactRequestTracking>,
+        { headers: privateResponseHeaders },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      const notFound = message.includes("REQUEST_NOT_FOUND");
+      const ineligible = message.includes("REQUEST_NOT_ELIGIBLE");
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            code: notFound ? "REQUEST_NOT_FOUND" : ineligible ? "REQUEST_NOT_ELIGIBLE" : "TRACKING_UNAVAILABLE",
+            message: notFound ? "El enlace no es válido." : ineligible ? "Esta solicitud no puede marcarse como completada." : "No pudimos actualizar la solicitud.",
+          },
+          meta: { source: "supabase" },
+        } satisfies ApiEnvelope<never>,
+        { status: notFound ? 404 : ineligible ? 409 : 503, headers: privateResponseHeaders },
+      );
+    }
   }
 
   const result = completeDemoContactRequest(parsedToken.data);

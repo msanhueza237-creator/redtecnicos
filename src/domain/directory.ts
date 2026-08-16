@@ -109,13 +109,13 @@ export interface Professional {
   score: number;
   availability: "Disponible esta semana" | "Agenda limitada" | "Solo emergencias";
   responseTime: string;
-  modalities: Array<"Domiciliaria" | "Comercial" | "Taller">;
+  modalities: Array<"Domiciliaria" | "Comercial" | "Taller" | "Diagnóstico remoto inicial">;
   vehicle: boolean;
   badges: VerificationBadge[];
   qualifications: Qualification[];
   portfolio: PortfolioItem[];
   status: Extract<ProfileStatus, "approved" | "verified">;
-  isDemo: true;
+  isDemo: boolean;
 }
 
 export const directoryFiltersSchema = z.object({
@@ -139,6 +139,7 @@ export const directoryFiltersSchema = z.object({
     z.literal("Domiciliaria"),
     z.literal("Comercial"),
     z.literal("Taller"),
+    z.literal("Diagnóstico remoto inicial"),
   ]).default(""),
   minimumExperience: z.number().int().min(0).max(60).default(0),
   minimumRating: z.number().min(0).max(5).default(0),

@@ -38,6 +38,7 @@ export function DirectoryBrowser({ professionals, initialFilters = {} }: Directo
     () => filterProfessionals(professionals, filters, enableDemoProfiles),
     [enableDemoProfiles, filters, professionals],
   );
+  const isDemoDirectory = professionals.some((professional) => professional.isDemo);
 
   function updateFilter<Key extends keyof DirectoryFilters>(key: Key, value: DirectoryFilters[Key]) {
     setFilters((current) => ({
@@ -238,8 +239,8 @@ export function DirectoryBrowser({ professionals, initialFilters = {} }: Directo
       <section className="directory-results" aria-labelledby="results-title">
         <div className="results-toolbar">
           <div aria-live="polite">
-            <h2 id="results-title">{results.length} perfiles de ejemplo</h2>
-            <p>Todos los resultados son ficticios y están excluidos de estadísticas reales.</p>
+            <h2 id="results-title">{results.length} {results.length === 1 ? "perfil disponible" : "perfiles disponibles"}</h2>
+            <p>{isDemoDirectory ? "Resultados ficticios excluidos de estadísticas reales." : "Perfiles publicados después de revisión administrativa."}</p>
           </div>
           <div className="field sort-field">
             <label htmlFor="sort-results">Ordenar por</label>
@@ -259,7 +260,7 @@ export function DirectoryBrowser({ professionals, initialFilters = {} }: Directo
         ) : (
           <div className="empty-state">
             <Search size={28} aria-hidden="true" />
-            <h2>No encontramos perfiles de ejemplo con esos filtros</h2>
+            <h2>No encontramos perfiles con esos filtros</h2>
             <p>Prueba ampliando la región, el servicio o las señales requeridas.</p>
             <button className="button button-primary" type="button" onClick={resetFilters}>Limpiar filtros</button>
           </div>

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { AdminDemoNotice, AdminPageHeading, AdminStatus, AdminTableCard } from "@/components/admin/admin-ui";
+import { AdminDemoNotice, AdminOperationalNotice, AdminPageHeading, AdminStatus, AdminTableCard } from "@/components/admin/admin-ui";
 import { DemoAction } from "@/components/admin/demo-action";
 import { adminRequests, statusTone } from "@/data/admin-demo";
 import { listDemoContactRequests } from "@/lib/contact-requests/demo-store";
+import { listAdminContactRequests } from "@/lib/contact-requests/private-repository";
+import { isSupabaseAuthMode } from "@/lib/supabase/config";
 
-export const metadata: Metadata = { title: "Solicitudes | Administración demo" };
+export const metadata: Metadata = { title: "Solicitudes | Administración" };
 export const dynamic = "force-dynamic";
 
 const createdAtFormatter = new Intl.DateTimeFormat("es-CL", {
@@ -23,7 +25,30 @@ const requestStatusLabels = {
   expired: "Expirada",
 } as const;
 
-export default function RequestsPage() {
+export default async function RequestsPage() {
+  if (isSupabaseAuthMode()) {
+    const liveRequests = await listAdminContactRequests();
+    return (
+      <section className="admin-page">
+        <AdminPageHeading eyebrow="Operación real" title="Solicitudes de contacto" description="Historial privado de solicitudes registradas en Supabase y entregadas a cada profesional." />
+        <AdminOperationalNotice>Esta vista contiene datos personales autorizados para gestionar el contacto. Nunca muestra tokens ni hashes de seguimiento.</AdminOperationalNotice>
+        <AdminTableCard title="Historial real" description={`${liveRequests.length} ${liveRequests.length === 1 ? "solicitud registrada" : "solicitudes registradas"}`}>
+          {liveRequests.length > 0 ? <table className="admin-table">
+            <thead><tr><th>Solicitud</th><th>Cliente</th><th>Servicio</th><th>Profesional</th><th>Estado</th><th>Creación</th></tr></thead>
+            <tbody>{liveRequests.map((request) => <tr key={request.id}>
+              <td><strong>{request.id}</strong><small>{request.description}</small></td>
+              <td><strong>{request.customerName}</strong><small>{request.customerEmail} · {request.emailVerified ? "verificado" : "sin verificar"}</small><small>{request.customerPhone}</small></td>
+              <td>{request.service}<small>{request.commune}</small></td>
+              <td>{request.professionalDisplayName}</td>
+              <td><AdminStatus tone={statusTone(requestStatusLabels[request.status])}>{requestStatusLabels[request.status]}</AdminStatus></td>
+              <td>{createdAtFormatter.format(new Date(request.createdAt))}</td>
+            </tr>)}</tbody>
+          </table> : <div className="admin-empty-state"><strong>Aún no hay solicitudes</strong><p>El historial comenzará cuando un cliente solicite contacto desde un perfil publicado.</p></div>}
+        </AdminTableCard>
+      </section>
+    );
+  }
+
   const capturedRequests = listDemoContactRequests();
 
   return (

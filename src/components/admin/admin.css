@@ -328,6 +328,10 @@
 .admin-decision textarea { width: 100%; min-height: 84px; resize: vertical; border: 1px solid #b9cbd5; border-radius: 8px; background: #fff; color: var(--ink-strong); padding: 10px 11px; }
 .admin-decision label > small { color: var(--muted); font-size: 10px; }
 .admin-demo-notice.is-operational { border-color: #bcd9e9; background: #eef8fd; color: var(--brand-action); }
+.admin-form-success,
+.admin-form-error { margin: 12px 0 0; font-size: 0.86rem; font-weight: 700; }
+.admin-form-success { color: #237a36; }
+.admin-form-error { color: #a33832; }
 .admin-chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .admin-chip-list span { border-radius: 999px; background: #eef6fa; color: var(--brand-action); font-size: 11px; font-weight: 750; padding: 7px 10px; }
 .admin-gallery-preview { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }

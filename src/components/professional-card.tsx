@@ -17,7 +17,7 @@ export function ProfessionalCard({ professional }: { professional: Professional 
             {professional.initials}
           </div>
           <div>
-            <span className="demo-pill">Perfil de demostración</span>
+            <span className="demo-pill">{professional.isDemo ? "Perfil de demostración" : professional.status === "verified" ? "Perfil verificado" : "Perfil publicado"}</span>
             <h3>
               <Link href={profileHref}>{professional.displayName}</Link>
             </h3>
@@ -54,7 +54,7 @@ export function ProfessionalCard({ professional }: { professional: Professional 
         </div>
 
         <div className="card-score-row">
-          <span className="rating" aria-label={`Calificación ${professional.rating} de 5, basada en ${professional.reviewCount} evaluaciones de ejemplo`}>
+          <span className="rating" aria-label={`Calificación ${professional.rating} de 5, basada en ${professional.reviewCount} evaluaciones`}>
             <Star size={16} fill="currentColor" aria-hidden="true" /> {professional.rating.toFixed(1)} ({professional.reviewCount})
           </span>
           <span className="score">

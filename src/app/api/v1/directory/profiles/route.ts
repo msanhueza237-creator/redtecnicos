@@ -1,9 +1,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { demoProfessionals } from "@/data/demo-professionals";
 import { directoryFiltersSchema, filterProfessionals, projectPublicProfessional } from "@/domain/directory";
+import { listDirectoryProfessionals } from "@/lib/directory/repository";
+import { isSupabaseMode } from "@/lib/supabase/config";
 
-export function GET(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const parsed = directoryFiltersSchema.safeParse({
     query: params.get("query") ?? "",
@@ -26,7 +29,12 @@ export function GET(request: NextRequest) {
     return NextResponse.json({ data: null, error: { code: "INVALID_FILTERS", message: "Los filtros no son válidos." }, meta: null }, { status: 400 });
   }
 
-  const enabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_PROFILES !== "false";
-  const data = filterProfessionals(demoProfessionals, parsed.data, enabled).map(projectPublicProfessional);
-  return NextResponse.json({ data, error: null, meta: { total: data.length, source: "fixtures" } });
+  try {
+    const professionals = await listDirectoryProfessionals();
+    const enabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_PROFILES !== "false";
+    const data = filterProfessionals(professionals, parsed.data, enabled).map(projectPublicProfessional);
+    return NextResponse.json({ data, error: null, meta: { total: data.length, source: isSupabaseMode() ? "supabase" : "fixtures" } });
+  } catch {
+    return NextResponse.json({ data: null, error: { code: "DIRECTORY_UNAVAILABLE", message: "El directorio no está disponible temporalmente." }, meta: null }, { status: 503 });
+  }
 }

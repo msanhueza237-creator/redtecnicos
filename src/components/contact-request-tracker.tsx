@@ -34,7 +34,15 @@ function getErrorMessage<T>(payload: ApiResponse<T> | null, fallback: string) {
   return payload?.error?.message ?? fallback;
 }
 
-export function ContactRequestTracker({ trackingToken }: Readonly<{ trackingToken: string }>) {
+export function ContactRequestTracker({
+  trackingToken,
+  isLive,
+  emailVerification,
+}: Readonly<{
+  trackingToken: string;
+  isLive: boolean;
+  emailVerification: "success" | "error" | null;
+}>) {
   const [request, setRequest] = useState<ContactRequestTracking | null>(null);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
@@ -148,8 +156,10 @@ export function ContactRequestTracker({ trackingToken }: Readonly<{ trackingToke
 
   return (
     <div className="tracking-layout">
+      {emailVerification === "success" ? <div className="legal-note" role="status"><BadgeCheck aria-hidden="true" size={20} /><p><strong>Correo verificado.</strong> Cuando el trabajo termine podrás dejar una evaluación.</p></div> : null}
+      {emailVerification === "error" ? <div className="contact-error" role="alert">No pudimos verificar el correo con este enlace. Solicita ayuda antes de evaluar.</div> : null}
       <header className="tracking-heading">
-        <span className="eyebrow">Seguimiento privado · Demo local</span>
+        <span className="eyebrow">Seguimiento privado{isLive ? "" : " · Demo local"}</span>
         <h1>Tu solicitud a {request.professional.displayName}</h1>
         <p>Desde aquí puedes confirmar el trabajo y dejar una evaluación vinculada a esta atención.</p>
       </header>
@@ -295,7 +305,7 @@ export function ContactRequestTracker({ trackingToken }: Readonly<{ trackingToke
                 <ClipboardCheck aria-hidden="true" size={17} />
                 {working ? "Confirmando…" : "Confirmar trabajo y calificar"}
               </button>
-              <p className="review-moderation-note">En producción también se notificará al profesional y quedará registro de la confirmación.</p>
+              <p className="review-moderation-note">La confirmación quedará registrada y habilitará la evaluación cuando el correo esté verificado.</p>
             </div>
           )}
         </section>

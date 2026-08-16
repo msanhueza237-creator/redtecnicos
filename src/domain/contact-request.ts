@@ -53,6 +53,7 @@ export const contactRequestReceiptSchema = z.object({
     displayName: z.string(),
     email: z.string(),
     phone: z.string(),
+    whatsapp: z.string().optional(),
   }),
 });
 

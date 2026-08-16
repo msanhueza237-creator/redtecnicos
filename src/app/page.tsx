@@ -16,8 +16,11 @@ import {
 } from "lucide-react";
 import { HeroSearch } from "@/components/hero-search";
 import { ProfessionalCard } from "@/components/professional-card";
-import { demoProfessionals, featuredProfessionals } from "@/data/demo-professionals";
 import type { ProfessionalCategory } from "@/domain/directory";
+import { listDirectoryProfessionals } from "@/lib/directory/repository";
+import { isSupabaseMode } from "@/lib/supabase/config";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Técnicos de refrigeración y climatización en Chile",
@@ -68,9 +71,17 @@ const testimonials = [
   { quote: "Encontramos una empresa con experiencia declarada en cámaras de frío y dejamos registrada la solicitud.", author: "Comercio gastronómico ficticio", place: "Valparaíso" },
 ] as const;
 
-export default function HomePage() {
-  const communeCount = new Set(demoProfessionals.flatMap((professional) => professional.communes)).size;
-  const averageRating = demoProfessionals.reduce((total, professional) => total + professional.rating, 0) / demoProfessionals.length;
+export default async function HomePage() {
+  const professionals = await listDirectoryProfessionals();
+  const featuredProfessionals = [...professionals]
+    .sort((left, right) => right.score - left.score || right.rating - left.rating)
+    .slice(0, 6);
+  const communeCount = new Set(professionals.flatMap((professional) => professional.communes)).size;
+  const ratedProfiles = professionals.filter((professional) => professional.reviewCount > 0);
+  const averageRating = ratedProfiles.length > 0
+    ? ratedProfiles.reduce((total, professional) => total + professional.rating, 0) / ratedProfiles.length
+    : 0;
+  const isLive = isSupabaseMode();
 
   return (
     <>
@@ -101,10 +112,10 @@ export default function HomePage() {
           </div>
         </div>
         <div className="container landing-metrics" aria-label="Indicadores de demostración calculados">
-          <div><strong>{demoProfessionals.length}</strong><span>Perfiles ficticios</span></div>
+          <div><strong>{professionals.length}</strong><span>{isLive ? "Perfiles publicados" : "Perfiles ficticios"}</span></div>
           <div><strong>{communeCount}</strong><span>Comunas cubiertas</span></div>
           <div><strong>3</strong><span>Categorías técnicas</span></div>
-          <div><strong>{averageRating.toFixed(1)}</strong><span>Calificación demo</span></div>
+          <div><strong>{averageRating > 0 ? averageRating.toFixed(1) : "—"}</strong><span>{isLive ? "Calificación promedio" : "Calificación demo"}</span></div>
         </div>
       </section>
 
@@ -130,12 +141,12 @@ export default function HomePage() {
       <section className="section section-subtle" aria-labelledby="featured-title">
         <div className="container">
           <div className="section-header">
-            <div><span className="eyebrow">Directorio profesional</span><h2 id="featured-title">Encuentra tu técnico de confianza</h2><p>Perfiles ficticios preparados para revisar la experiencia antes de incorporar profesionales reales.</p></div>
+            <div><span className="eyebrow">Directorio profesional</span><h2 id="featured-title">Encuentra tu técnico de confianza</h2><p>{isLive ? "Perfiles publicados después de una revisión administrativa de su información." : "Perfiles ficticios preparados para revisar la experiencia."}</p></div>
             <Link className="button button-secondary" href="/tecnicos">Ver directorio completo <ArrowRight size={16} aria-hidden="true" /></Link>
           </div>
-          <div className="cards-grid landing-profile-grid">
+          {featuredProfessionals.length > 0 ? <div className="cards-grid landing-profile-grid">
             {featuredProfessionals.map((professional) => <ProfessionalCard professional={professional} key={professional.id} />)}
-          </div>
+          </div> : <div className="empty-state"><UserRoundSearch size={30} aria-hidden="true" /><h3>Estamos incorporando los primeros perfiles</h3><p>Los técnicos y empresas aparecerán aquí una vez aprobados por administración.</p><Link className="button button-primary" href="/registro-tecnico">Publicar mi perfil</Link></div>}
         </div>
       </section>
 

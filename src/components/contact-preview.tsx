@@ -22,6 +22,7 @@ interface ContactResult {
     displayName: string;
     email: string;
     phone: string;
+    whatsapp?: string;
   };
   createdAt: string;
 }
@@ -33,6 +34,7 @@ interface ContactPreviewProps {
   professionalKind: "technician" | "company";
   services: string[];
   communes: string[];
+  isDemo: boolean;
 }
 
 interface ContactApiResponse {
@@ -53,6 +55,7 @@ export function ContactPreview({
   professionalKind,
   services,
   communes,
+  isDemo,
 }: ContactPreviewProps) {
   const [result, setResult] = useState<ContactResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -127,6 +130,11 @@ export function ContactPreview({
             <strong>{result.professional.phone}</strong>
             <ArrowRight size={17} aria-hidden="true" />
           </a>
+          {result.professional.whatsapp ? <a href={`https://wa.me/${result.professional.whatsapp.replace(/\D/g, "")}`} rel="noreferrer" target="_blank">
+            <span><MessageSquareText size={18} aria-hidden="true" /> WhatsApp</span>
+            <strong>Abrir conversación</strong>
+            <ArrowRight size={17} aria-hidden="true" />
+          </a> : null}
         </div>
 
         <div className="contact-request-reference">
@@ -169,7 +177,7 @@ export function ContactPreview({
 
   return (
     <form className="contact-form" onSubmit={handleSubmit} aria-busy={isSubmitting}>
-      <div className="contact-demo-label"><Info size={15} aria-hidden="true" /> Demo local: usa datos ficticios</div>
+      <div className="contact-demo-label"><Info size={15} aria-hidden="true" /> {isDemo ? "Demo local: usa datos ficticios" : "Solicitud segura y registrada"}</div>
       <h2>Solicitar contacto</h2>
       <p className="contact-subtitle">
         Completa tus datos y verás inmediatamente el correo y celular de {professionalName}.
@@ -220,7 +228,7 @@ export function ContactPreview({
 
       <div className="responsibility-box">
         <LockKeyhole size={18} aria-hidden="true" />
-        <p>Esta demo guardará temporalmente la solicitud y tus datos para facilitar el contacto con {professionalKind === "company" ? "la empresa" : "el técnico"}. No ingreses información real durante la revisión local.</p>
+        <p>{isDemo ? "Esta demo guardará temporalmente la solicitud. No ingreses información real durante la revisión local." : `Guardaremos esta solicitud y tus datos para facilitar el contacto con ${professionalKind === "company" ? "la empresa" : "el técnico"}. También enviaremos un enlace privado de seguimiento a tu correo.`}</p>
       </div>
 
       <label className="checkbox-row consent-row">
@@ -233,7 +241,7 @@ export function ContactPreview({
       <button className="button button-primary contact-submit" type="submit" disabled={isSubmitting}>
         <Send size={17} aria-hidden="true" /> {isSubmitting ? "Registrando solicitud…" : "Ver datos de contacto"}
       </button>
-      <p className="contact-submit-help">Al continuar, la solicitud quedará asociada temporalmente a este perfil.</p>
+      <p className="contact-submit-help">Al continuar, la solicitud quedará asociada a este perfil y registrada en su historial.</p>
     </form>
   );
 }

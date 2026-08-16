@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { ContactRequestTracker } from "@/components/contact-request-tracker";
+import { isSupabaseMode } from "@/lib/supabase/config";
 
 export const metadata: Metadata = {
   title: "Seguimiento privado de solicitud",
@@ -14,8 +15,13 @@ export const dynamic = "force-dynamic";
 
 export default async function TrackingPage({
   params,
-}: Readonly<{ params: Promise<{ trackingToken: string }> }>) {
+  searchParams,
+}: Readonly<{
+  params: Promise<{ trackingToken: string }>;
+  searchParams: Promise<{ verification?: string }>;
+}>) {
   const { trackingToken } = await params;
+  const { verification } = await searchParams;
 
   return (
     <section className="tracking-section">
@@ -25,7 +31,11 @@ export default async function TrackingPage({
           <ChevronRight aria-hidden="true" size={13} />
           <span aria-current="page">Seguimiento privado</span>
         </nav>
-        <ContactRequestTracker trackingToken={trackingToken} />
+        <ContactRequestTracker
+          trackingToken={trackingToken}
+          isLive={isSupabaseMode()}
+          emailVerification={verification === "success" ? "success" : verification === "error" ? "error" : null}
+        />
       </div>
     </section>
   );

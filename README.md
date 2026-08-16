@@ -10,19 +10,20 @@ pagos en esta primera versión.
 
 ## Estado del proyecto
 
-La demo pública está desplegada en Dokploy y el repositorio ya incorpora la base
-de **Supabase Auth, roles y RLS**.
+La aplicación pública está desplegada en Dokploy y el repositorio incorpora
+**Supabase Auth, roles, RLS, directorio real y solicitudes persistentes**.
 
-- La aplicación funciona con `APP_DATA_SOURCE=fixtures` y 10 perfiles
-  inequívocamente ficticios.
+- El modo local funciona con `APP_DATA_SOURCE=fixtures` y 10 perfiles
+  inequívocamente ficticios; producción usa `APP_DATA_SOURCE=supabase`.
 - En modo fixtures no requiere secretos ni conexión a servicios externos.
 - Los perfiles demo deben mostrar “Perfil de demostración” y nunca representan
   personas, empresas, certificados, teléfonos o direcciones reales.
-- Las migraciones, buckets, login y alta segura de técnicos están implementados.
-  El modo Supabase se activa únicamente después de desplegar, migrar y verificar
-  la instancia dedicada.
-- Turnstile, SMTP, ClamAV, 2FA administrativa y revisión jurídica continúan
-  siendo barreras antes de recibir datos reales.
+- Las migraciones, buckets, login, alta, moderación, publicación, contacto,
+  seguimiento y evaluación segura están implementados.
+- El adaptador SMTP está integrado y dispone de una prueba protegida en
+  `/admin/configuracion`; requiere credenciales operativas del proveedor.
+- Turnstile, ClamAV, 2FA administrativa y revisión jurídica continúan siendo
+  barreras para el lanzamiento comercial completo.
 
 ## Tecnologías objetivo
 
@@ -68,12 +69,21 @@ No se debe configurar una URL o una clave de un Supabase compartido. Consultar
 El cliente SSR usa `@supabase/ssr`, cookies rotativas y validación del JWT:
 
 ```dotenv
-APP_DATA_SOURCE=fixtures
+APP_DATA_SOURCE=supabase
 AUTH_DATA_SOURCE=supabase
 NEXT_PUBLIC_SUPABASE_URL=https://supabase.redtecnicos.cl
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 # Compatibilidad con self-hosted que todavía entrega anon key:
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+RATE_LIMIT_SECRET=
+APP_URL=https://redtecnicos.cl
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM_EMAIL=
+SMTP_FROM_NAME=Red Técnicos Chile
 ```
 
 Las migraciones están en `supabase/migrations`. Los scripts son dry-run por
@@ -98,6 +108,18 @@ aprobada. El registro solo origina roles `technician` o `company`;
 `moderator`, `admin` y `superadmin` se asignan con una conexión PostgreSQL
 privilegiada y motivo de auditoría. No se crean llaves API individuales para
 técnicos.
+
+El directorio consulta exclusivamente `directory_profiles`, que no contiene
+correo, teléfono, documentos ni notas internas. La solicitud pública se crea
+mediante una función transaccional que valida perfil, servicio y cobertura,
+aplica rate limiting PostgreSQL y recién entonces devuelve el contacto. El
+token de seguimiento y el token de verificación de correo son independientes;
+solo se guardan sus hashes SHA-256.
+
+El correo transaccional utiliza SMTP desde el servidor. Al crear una solicitud
+se intenta enviar un mensaje de confirmación al cliente y una notificación al
+profesional. Un fallo SMTP no revierte la solicitud ya registrada y su estado
+se informa de forma segura en la respuesta y en el módulo administrativo.
 
 ## Accesos privados de demostración
 
