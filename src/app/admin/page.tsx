@@ -1,14 +1,56 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ClipboardList, FileSearch, Images, MessageSquareWarning, UserRoundCheck } from "lucide-react";
-import { AdminDemoNotice, AdminPageHeading, AdminStatus, AdminTableCard } from "@/components/admin/admin-ui";
+import { AdminDemoNotice, AdminOperationalNotice, AdminPageHeading, AdminStatus, AdminTableCard } from "@/components/admin/admin-ui";
 import { adminApplications, statusTone } from "@/data/admin-demo";
+import { regionNameFromCode } from "@/domain/professional-registration";
+import { listProfessionalApplications, profileStatusLabels, profileStatusTone } from "@/lib/admin/professional-applications";
 import { listDemoReviews } from "@/lib/contact-requests/demo-store";
+import { isSupabaseAuthMode } from "@/lib/supabase/config";
 
 export const metadata: Metadata = { title: "Administración demo" };
 export const dynamic = "force-dynamic";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  if (isSupabaseAuthMode()) {
+    const result = await listProfessionalApplications(10);
+    const pending = result.data.filter((item) => ["submitted", "under_review"].includes(item.status)).length;
+    const published = result.data.filter((item) => ["approved", "verified"].includes(item.status)).length;
+    const changes = result.data.filter((item) => item.status === "changes_requested").length;
+    const rejected = result.data.filter((item) => item.status === "rejected").length;
+
+    return (
+      <section className="admin-page">
+        <AdminPageHeading eyebrow="Operación real" title="Resumen de moderación" description="Estado actual del registro y revisión de profesionales en Red Técnicos Chile." />
+        <AdminOperationalNotice>Las postulaciones de este resumen provienen de Supabase. La galería, formación y solicitudes se conectarán gradualmente desde sus módulos dedicados.</AdminOperationalNotice>
+        {result.error ? <p className="auth-message" role="alert">{result.error}</p> : null}
+        <div className="metric-grid admin-metrics">
+          <article><span className="metric-icon"><ClipboardList aria-hidden="true" size={20} /></span><span>Por revisar</span><strong>{pending}</strong><small>Enviadas o en revisión</small></article>
+          <article><span className="metric-icon"><UserRoundCheck aria-hidden="true" size={20} /></span><span>Perfiles publicados</span><strong>{published}</strong><small>Con proyección pública</small></article>
+          <article><span className="metric-icon"><FileSearch aria-hidden="true" size={20} /></span><span>Cambios solicitados</span><strong>{changes}</strong><small>Esperando al profesional</small></article>
+          <article><span className="metric-icon"><MessageSquareWarning aria-hidden="true" size={20} /></span><span>Rechazadas</span><strong>{rejected}</strong><small>Con motivo auditado</small></article>
+        </div>
+        <AdminTableCard title="Postulaciones recientes" description="Registros reales ordenados por su última actualización." action={<Link className="button button-secondary" href="/admin/postulaciones">Ver todas</Link>}>
+          <table className="admin-table">
+            <thead><tr><th>Perfil</th><th>Tipo</th><th>Región</th><th>Estado</th><th>Acción</th></tr></thead>
+            <tbody>
+              {result.data.slice(0, 5).map((application) => (
+                <tr key={application.id}>
+                  <td><strong>{application.displayName}</strong><small>{application.id.slice(0, 8)}</small></td>
+                  <td>{application.kind === "company" ? "Empresa" : "Técnico"}</td>
+                  <td>{application.regionCode ? regionNameFromCode(application.regionCode) : "Sin región"}</td>
+                  <td><AdminStatus tone={profileStatusTone(application.status)}>{profileStatusLabels[application.status]}</AdminStatus></td>
+                  <td><Link className="admin-table-link" href={`/admin/postulaciones/${application.id}`}>Revisar</Link></td>
+                </tr>
+              ))}
+              {!result.data.length && !result.error ? <tr><td colSpan={5}><div className="admin-empty-state"><strong>Sin postulaciones</strong><p>Los nuevos registros aparecerán aquí.</p></div></td></tr> : null}
+            </tbody>
+          </table>
+        </AdminTableCard>
+      </section>
+    );
+  }
+
   const capturedReviews = listDemoReviews();
 
   return (

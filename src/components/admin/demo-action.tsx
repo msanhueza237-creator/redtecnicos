@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
+import { moderateProfessionalApplicationAction } from "@/app/admin/postulaciones/actions";
+import { initialAdminActionState } from "@/lib/admin/action-state";
 
 export function DemoAction({ label, variant = "secondary", confirmation }: { label: string; variant?: "primary" | "secondary"; confirmation?: string }) {
   const [message, setMessage] = useState("");
@@ -58,5 +60,33 @@ export function ModerationDecision({
       </div>
       {message ? <p className="admin-action-feedback" role="status">{message}</p> : null}
     </div>
+  );
+}
+
+export function RealModerationDecision({ resource }: Readonly<{ resource: string }>) {
+  const boundAction = moderateProfessionalApplicationAction.bind(null, resource);
+  const [state, action, pending] = useActionState(boundAction, initialAdminActionState);
+
+  return (
+    <form action={action} className="admin-decision">
+      <label>
+        <span>Motivo de la decisión</span>
+        <textarea
+          maxLength={1000}
+          minLength={8}
+          name="reason"
+          placeholder="Ej.: antecedentes principales revisados y cobertura coherente."
+          required
+          rows={3}
+        />
+        <small>Obligatorio. Se guardará junto con el usuario administrador y la fecha.</small>
+      </label>
+      <div className="admin-actions">
+        <button className="button button-primary" disabled={pending} name="decision" type="submit" value="approve">Aprobar y publicar</button>
+        <button className="button button-secondary" disabled={pending} name="decision" type="submit" value="request_changes">Solicitar cambios</button>
+        <button className="button button-secondary" disabled={pending} name="decision" type="submit" value="reject">Rechazar</button>
+      </div>
+      {state.message ? <p className="admin-action-feedback" data-status={state.status} role="status">{state.message}</p> : null}
+    </form>
   );
 }

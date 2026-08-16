@@ -1,18 +1,27 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { FlaskConical } from "lucide-react";
+import { FlaskConical, ShieldCheck } from "lucide-react";
 import type { AdminStatusTone } from "@/data/admin-demo";
 import "./admin.css";
 
-export function AdminPageHeading({ title, description, action }: { title: string; description: string; action?: ReactNode }) {
+export function AdminPageHeading({ title, description, action, eyebrow = "Módulo de demostración" }: { title: string; description: string; action?: ReactNode; eyebrow?: string }) {
   return (
     <div className="admin-page-heading">
       <div>
-        <span className="demo-pill">Módulo de demostración</span>
+        <span className="demo-pill">{eyebrow}</span>
         <h1>{title}</h1>
         <p>{description}</p>
       </div>
       {action}
+    </div>
+  );
+}
+
+export function AdminOperationalNotice({ children }: { children: ReactNode }) {
+  return (
+    <div className="admin-demo-notice is-operational" role="note">
+      <ShieldCheck aria-hidden="true" size={18} />
+      <p>{children}</p>
     </div>
   );
 }

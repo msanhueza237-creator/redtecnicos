@@ -1,19 +1,7 @@
 import type { PortfolioItem, Professional, ProfessionalCategory } from "@/domain/directory";
+import { professionalServices } from "@/domain/professional-registration";
 
-export const serviceCatalog = [
-  "Instalación de aire acondicionado",
-  "Mantención de aire acondicionado",
-  "Reparación de aire acondicionado",
-  "Limpieza de equipos",
-  "Diagnóstico técnico",
-  "Refrigeración comercial",
-  "Cámaras de frío",
-  "Electricidad relacionada",
-  "Instalación de bombas de condensado",
-  "Instalación de tuberías de cobre",
-  "Detección de fugas",
-  "Carga de refrigerante",
-] as const;
+export const serviceCatalog = professionalServices;
 
 export const chileRegions = [
   "Arica y Parinacota",

@@ -4,7 +4,7 @@ import { demoProfessionalPanel } from "@/data/demo-professional-panel";
 import { requireAppRole } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "Panel profesional demo",
+  title: "Panel profesional",
   robots: { index: false, follow: false },
 };
 

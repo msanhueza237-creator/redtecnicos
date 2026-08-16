@@ -8,7 +8,7 @@ import type { AuthenticatedRole } from "@/lib/auth/roles";
 import "@/components/admin/admin.css";
 
 export const metadata: Metadata = {
-  title: "Administración demo",
+  title: "Administración",
   robots: { index: false, follow: false },
 };
 

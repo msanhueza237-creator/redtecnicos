@@ -84,10 +84,20 @@ defecto y no utilizan `supabase link`:
 .\scripts\supabase\db-apply.ps1 -Environment staging -Apply
 ```
 
-Las cuentas usan correo y contraseña de Supabase Auth. El registro público solo
-origina roles `technician` o `company`; `moderator`, `admin` y `superadmin` se
-asignan con una conexión PostgreSQL privilegiada y motivo de auditoría. No se
-crean llaves API individuales para técnicos.
+Las cuentas usan correo y contraseña de Supabase Auth. El registro público tiene
+cuatro etapas breves: cuenta/contacto, perfil mínimo, servicios/cobertura y
+revisión. Al enviarlo, el trigger valida y sanea los metadatos, crea el perfil
+con estado `submitted`, registra el consentimiento versionado y lo incorpora a
+la bandeja administrativa. Contraseñas, contacto y documentos nunca forman
+parte de `directory_profiles`.
+
+La moderación se ejecuta mediante una función `security definer` que vuelve a
+validar el rol y exige un motivo auditado. Aprobar crea o actualiza la proyección
+pública segura; solicitar cambios conserva la última proyección previamente
+aprobada. El registro solo origina roles `technician` o `company`;
+`moderator`, `admin` y `superadmin` se asignan con una conexión PostgreSQL
+privilegiada y motivo de auditoría. No se crean llaves API individuales para
+técnicos.
 
 ## Accesos privados de demostración
 

@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(14);
+select plan(17);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -52,6 +52,29 @@ select function_privs_are(
   'authenticated',
   array[]::text[],
   'un usuario autenticado no puede asignar roles'
+);
+
+select has_function(
+  'public',
+  'moderate_professional_profile',
+  array['uuid', 'text', 'text'],
+  'Existe la moderación profesional auditada'
+);
+select function_privs_are(
+  'public',
+  'moderate_professional_profile',
+  array['uuid', 'text', 'text'],
+  'anon',
+  array[]::text[],
+  'anon no puede moderar perfiles'
+);
+select function_privs_are(
+  'public',
+  'moderate_professional_profile',
+  array['uuid', 'text', 'text'],
+  'authenticated',
+  array['EXECUTE'],
+  'authenticated puede invocar la función, que valida el rol internamente'
 );
 
 select * from finish();

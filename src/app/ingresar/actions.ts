@@ -8,6 +8,7 @@ import {
   roleLandingPath,
 } from "@/lib/auth/roles";
 import type { AuthActionState } from "@/lib/auth/action-state";
+import { professionalRegistrationSchema } from "@/domain/professional-registration";
 import { isSupabaseAuthMode } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,26 +17,6 @@ const loginSchema = z.object({
   password: z.string().min(1, "Ingresa tu contraseña.").max(128),
   next: z.string().optional(),
 });
-
-const registerSchema = z
-  .object({
-    fullName: z.string().trim().min(3, "Ingresa tu nombre completo.").max(100),
-    email: z.email("Ingresa un correo válido.").trim().toLowerCase(),
-    password: z
-      .string()
-      .min(12, "La contraseña debe tener al menos 12 caracteres.")
-      .max(128)
-      .regex(/[A-ZÁÉÍÓÚÑ]/u, "Incluye al menos una mayúscula.")
-      .regex(/[a-záéíóúñ]/u, "Incluye al menos una minúscula.")
-      .regex(/[0-9]/, "Incluye al menos un número."),
-    confirmPassword: z.string(),
-    kind: z.enum(["technician", "company"]),
-    terms: z.literal("on", { error: "Debes aceptar los términos para continuar." }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    path: ["password"],
-    message: "Las contraseñas no coinciden.",
-  });
 
 function authUnavailable(): AuthActionState {
   return {
@@ -108,12 +89,22 @@ export async function registerProfessionalAction(
 ): Promise<AuthActionState> {
   if (!isSupabaseAuthMode()) return authUnavailable();
 
-  const parsed = registerSchema.safeParse({
+  const parsed = professionalRegistrationSchema.safeParse({
     fullName: formData.get("fullName"),
     email: formData.get("email"),
+    phone: formData.get("phone"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
     kind: formData.get("kind"),
+    displayName: formData.get("displayName"),
+    category: formData.get("category"),
+    yearsExperience: formData.get("yearsExperience"),
+    summary: formData.get("summary"),
+    services: formData.getAll("services"),
+    regionCode: formData.get("regionCode"),
+    commune: formData.get("commune"),
+    modalities: formData.getAll("modalities"),
+    hasVehicle: formData.get("hasVehicle") === "on",
     terms: formData.get("terms"),
   });
   if (!parsed.success) {
@@ -121,12 +112,7 @@ export async function registerProfessionalAction(
     return {
       status: "error",
       message: "Revisa los datos antes de crear la cuenta.",
-      fieldErrors: {
-        fullName: errors.fullName,
-        email: errors.email,
-        password: errors.password,
-        terms: errors.terms,
-      },
+      fieldErrors: errors,
     };
   }
 
@@ -138,7 +124,18 @@ export async function registerProfessionalAction(
       data: {
         display_name: parsed.data.fullName,
         entity_kind: parsed.data.kind,
+        phone: parsed.data.phone,
+        professional_display_name: parsed.data.displayName,
+        professional_category: parsed.data.category,
+        years_experience: parsed.data.yearsExperience,
+        summary: parsed.data.summary,
+        services: parsed.data.services,
+        region_code: parsed.data.regionCode,
+        commune_codes: [parsed.data.commune],
+        modalities: parsed.data.modalities,
+        has_vehicle: parsed.data.hasVehicle,
         consent_version: "professional-terms-v1",
+        registration_version: "professional-onboarding-v1",
       },
     },
   });
