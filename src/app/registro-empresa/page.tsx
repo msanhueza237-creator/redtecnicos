@@ -3,6 +3,7 @@ import { RegistrationWizard } from "@/components/registration-wizard";
 import { isSupabaseAuthMode } from "@/lib/supabase/config";
 
 export const metadata: Metadata = { title: "Registro para empresas" };
+export const dynamic = "force-dynamic";
 
 export default function CompanyRegistrationPage() {
   const supabaseMode = isSupabaseAuthMode();
