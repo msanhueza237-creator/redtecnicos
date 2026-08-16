@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   getAppDataSource,
   getAuthDataSource,
+  getPublicSupabaseConfig,
   isSupabaseAuthMode,
 } from "@/lib/supabase/config";
 
@@ -34,5 +35,13 @@ describe("origen de autenticaciÃ³n", () => {
 
     expect(getAppDataSource()).toBe("fixtures");
     expect(getAuthDataSource()).toBe("fixtures");
+  });
+
+  it("prefiere la llave JWT anon en instalaciones self-hosted", () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://supabase.example.test");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-jwt-compatible");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "publishable-incompatible");
+
+    expect(getPublicSupabaseConfig().key).toBe("anon-jwt-compatible");
   });
 });

@@ -31,8 +31,11 @@ export interface PublicSupabaseConfig {
 export function getPublicSupabaseConfig(): PublicSupabaseConfig {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const key = (
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    // El stack self-hosted actual firma con la llave JWT anon. Algunas
+    // instalaciones también exponen una publishable key que GoTrue acepta,
+    // pero PostgREST no puede decodificar.
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   )?.trim();
 
   if (!url || !key) {
