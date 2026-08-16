@@ -42,6 +42,14 @@ interface ReviewRpcRow {
   professional_display_name: string;
 }
 
+interface ReviewInvitationRpcRow {
+  requester_name: string;
+  requester_email: string;
+  requester_email_verified: boolean;
+  requested_service: string;
+  professional_display_name: string;
+}
+
 export interface ContactEmailContext {
   customerName: string;
   customerEmail: string;
@@ -59,6 +67,15 @@ export interface ContactEmailContext {
 export interface CreatedLiveContactRequest {
   receipt: ContactRequestReceipt;
   email: ContactEmailContext;
+}
+
+export interface LiveReviewInvitationContext {
+  customerName: string;
+  customerEmail: string;
+  emailVerified: boolean;
+  service: string;
+  professionalName: string;
+  trackingToken: string;
 }
 
 function rawToken(): string {
@@ -186,6 +203,27 @@ export async function completeLiveContactRequest(trackingToken: string): Promise
   });
   if (error) throw new Error(error.message);
   return getLiveContactRequestTracking(trackingToken);
+}
+
+export async function getLiveReviewInvitationContext(
+  trackingToken: string,
+): Promise<LiveReviewInvitationContext | undefined> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_review_invitation_context", {
+    p_tracking_token_hash: hashOpaqueToken(trackingToken),
+  });
+  if (error) throw new Error(error.message);
+  const row = firstRow<ReviewInvitationRpcRow>(data);
+  if (!row) return undefined;
+
+  return {
+    customerName: row.requester_name,
+    customerEmail: row.requester_email,
+    emailVerified: row.requester_email_verified,
+    service: row.requested_service,
+    professionalName: row.professional_display_name,
+    trackingToken,
+  };
 }
 
 export async function createLiveReview(input: CreateReviewInput): Promise<ReviewReceipt> {

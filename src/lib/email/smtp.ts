@@ -2,6 +2,12 @@ import "server-only";
 
 import nodemailer from "nodemailer";
 import type { ContactEmailContext } from "@/lib/contact-requests/repository";
+import {
+  customerContactEmailTemplate,
+  professionalRequestEmailTemplate,
+  reviewInvitationEmailTemplate,
+  smtpTestEmailTemplate,
+} from "@/lib/email/templates";
 
 interface SmtpConfig {
   host: string;
@@ -17,6 +23,16 @@ export interface MailDeliveryResult {
   configured: boolean;
   customer: "sent" | "failed" | "skipped";
   professional: "sent" | "failed" | "skipped";
+}
+
+export type SingleMailDeliveryResult = "sent" | "failed" | "skipped";
+
+export interface ReviewInvitationContext {
+  customerName: string;
+  customerEmail: string;
+  professionalName: string;
+  service: string;
+  trackingToken: string;
 }
 
 function smtpConfig(): SmtpConfig | null {
@@ -60,36 +76,31 @@ function transporter() {
   };
 }
 
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>'"]/gu, (character) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "'": "&#39;",
-    "\"": "&quot;",
-  })[character] ?? character);
-}
-
 function siteUrl(): string {
   return (process.env.APP_URL?.trim() || "https://redtecnicos.cl").replace(/\/$/u, "");
 }
 
 export async function verifySmtpConnection(): Promise<void> {
   const { client } = transporter();
-  await client.verify();
-  client.close();
+  try {
+    await client.verify();
+  } finally {
+    client.close();
+  }
 }
 
 export async function sendSmtpTestEmail(recipient: string): Promise<void> {
   const { client, config } = transporter();
-  await client.sendMail({
-    from: { name: config.fromName, address: config.fromEmail },
-    to: recipient,
-    subject: "Prueba SMTP · Red Técnicos Chile",
-    text: "La conexión SMTP de Red Técnicos Chile fue validada correctamente.",
-    html: "<h1>Conexión SMTP validada</h1><p>Red Técnicos Chile puede enviar correos transaccionales desde la aplicación.</p>",
-  });
-  client.close();
+  const template = smtpTestEmailTemplate();
+  try {
+    await client.sendMail({
+      from: { name: config.fromName, address: config.fromEmail },
+      to: recipient,
+      ...template,
+    });
+  } finally {
+    client.close();
+  }
 }
 
 export async function sendContactRequestEmails(context: ContactEmailContext): Promise<MailDeliveryResult> {
@@ -100,29 +111,65 @@ export async function sendContactRequestEmails(context: ContactEmailContext): Pr
   const trackingUrl = `${siteUrl()}/seguimiento/${encodeURIComponent(context.trackingToken)}`;
   const verificationUrl = `${siteUrl()}/api/v1/contact-requests/verify/${encodeURIComponent(context.verificationToken)}?tracking=${encodeURIComponent(context.trackingToken)}`;
   const from = { name: config.fromName, address: config.fromEmail };
+  const customerTemplate = customerContactEmailTemplate({
+    customerName: context.customerName,
+    professionalName: context.professionalName,
+    professionalEmail: context.professionalEmail,
+    professionalPhone: context.professionalPhone,
+    service: context.service,
+    commune: context.commune,
+    verificationUrl,
+    trackingUrl,
+  });
+  const professionalTemplate = professionalRequestEmailTemplate({
+    customerName: context.customerName,
+    customerEmail: context.customerEmail,
+    customerPhone: context.customerPhone,
+    service: context.service,
+    commune: context.commune,
+    description: context.description,
+    panelUrl: `${siteUrl()}/panel/solicitudes`,
+  });
 
-  const [customer, professional] = await Promise.allSettled([
-    client.sendMail({
-      from,
-      to: context.customerEmail,
-      subject: `Confirma tu solicitud a ${context.professionalName}`,
-      text: `Hola ${context.customerName},\n\nRegistramos tu solicitud de ${context.service} en ${context.commune}.\n\nConfirma tu correo: ${verificationUrl}\nSeguimiento privado: ${trackingUrl}\n\nContacto del profesional:\n${context.professionalName}\n${context.professionalEmail}\n${context.professionalPhone}\n\nRed Técnicos Chile no interviene en presupuestos, pagos ni ejecución del servicio.`,
-      html: `<h1>Solicitud registrada</h1><p>Hola ${escapeHtml(context.customerName)}, registramos tu solicitud de <strong>${escapeHtml(context.service)}</strong> en ${escapeHtml(context.commune)}.</p><p><a href="${verificationUrl}">Confirmar correo y abrir seguimiento</a></p><h2>Contacto del profesional</h2><p><strong>${escapeHtml(context.professionalName)}</strong><br>${escapeHtml(context.professionalEmail)}<br>${escapeHtml(context.professionalPhone)}</p><p><a href="${trackingUrl}">Abrir seguimiento privado</a></p><p><small>Red Técnicos Chile no interviene en presupuestos, pagos ni ejecución del servicio.</small></p>`,
-    }),
-    client.sendMail({
-      from,
-      to: context.professionalEmail,
-      replyTo: context.customerEmail,
-      subject: `Nueva solicitud: ${context.service} en ${context.commune}`,
-      text: `Nueva solicitud en Red Técnicos Chile\n\nCliente: ${context.customerName}\nCorreo: ${context.customerEmail}\nCelular: ${context.customerPhone ?? "No informado"}\nComuna: ${context.commune}\nServicio: ${context.service}\nDescripción: ${context.description}\n\nGestiona el historial en ${siteUrl()}/panel/solicitudes`,
-      html: `<h1>Nueva solicitud de contacto</h1><p><strong>Cliente:</strong> ${escapeHtml(context.customerName)}<br><strong>Correo:</strong> ${escapeHtml(context.customerEmail)}<br><strong>Celular:</strong> ${escapeHtml(context.customerPhone ?? "No informado")}<br><strong>Comuna:</strong> ${escapeHtml(context.commune)}<br><strong>Servicio:</strong> ${escapeHtml(context.service)}</p><p><strong>Descripción:</strong><br>${escapeHtml(context.description)}</p><p><a href="${siteUrl()}/panel/solicitudes">Abrir historial profesional</a></p>`,
-    }),
-  ]);
-  client.close();
+  let customer: PromiseSettledResult<unknown>;
+  let professional: PromiseSettledResult<unknown>;
+  try {
+    [customer, professional] = await Promise.allSettled([
+      client.sendMail({ from, to: context.customerEmail, ...customerTemplate }),
+      client.sendMail({ from, to: context.professionalEmail, replyTo: context.customerEmail, ...professionalTemplate }),
+    ]);
+  } finally {
+    client.close();
+  }
 
   return {
     configured: true,
     customer: customer.status === "fulfilled" ? "sent" : "failed",
     professional: professional.status === "fulfilled" ? "sent" : "failed",
   };
+}
+
+export async function sendReviewInvitationEmail(context: ReviewInvitationContext): Promise<SingleMailDeliveryResult> {
+  if (!smtpConfig()) return "skipped";
+
+  const { client, config } = transporter();
+  const template = reviewInvitationEmailTemplate({
+    customerName: context.customerName,
+    professionalName: context.professionalName,
+    service: context.service,
+    trackingUrl: `${siteUrl()}/seguimiento/${encodeURIComponent(context.trackingToken)}`,
+  });
+
+  try {
+    await client.sendMail({
+      from: { name: config.fromName, address: config.fromEmail },
+      to: context.customerEmail,
+      ...template,
+    });
+    return "sent";
+  } catch {
+    return "failed";
+  } finally {
+    client.close();
+  }
 }

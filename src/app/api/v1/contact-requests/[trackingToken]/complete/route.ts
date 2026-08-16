@@ -5,7 +5,11 @@ import {
   trackingTokenSchema,
 } from "@/domain/contact-request";
 import { completeDemoContactRequest } from "@/lib/contact-requests/demo-store";
-import { completeLiveContactRequest } from "@/lib/contact-requests/repository";
+import {
+  completeLiveContactRequest,
+  getLiveReviewInvitationContext,
+} from "@/lib/contact-requests/repository";
+import { sendReviewInvitationEmail } from "@/lib/email/smtp";
 import { isSupabaseMode } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
@@ -34,8 +38,17 @@ export async function POST(
     try {
       const data = await completeLiveContactRequest(parsedToken.data);
       if (!data) throw new Error("REQUEST_NOT_FOUND");
+      let email: "sent" | "failed" | "skipped" = "skipped";
+      try {
+        const invitation = await getLiveReviewInvitationContext(parsedToken.data);
+        email = invitation?.emailVerified
+          ? await sendReviewInvitationEmail(invitation)
+          : "skipped";
+      } catch {
+        email = "failed";
+      }
       return NextResponse.json(
-        { data, error: null, meta: { source: "supabase" } } satisfies ApiEnvelope<ContactRequestTracking>,
+        { data, error: null, meta: { source: "supabase", reviewInvitationEmail: email } } satisfies ApiEnvelope<ContactRequestTracking>,
         { headers: privateResponseHeaders },
       );
     } catch (error) {
