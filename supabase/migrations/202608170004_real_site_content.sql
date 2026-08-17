@@ -320,9 +320,9 @@ $$;
 
 revoke all on function private.validate_site_content(jsonb) from public, anon, authenticated;
 revoke all on function public.get_public_site_content() from public;
-revoke all on function public.list_admin_site_content() from public;
-revoke all on function public.save_site_content_draft(text, integer, boolean, text, text, text, text, text, text, text, text) from public;
-revoke all on function public.publish_site_content(text, integer, text) from public;
+revoke all on function public.list_admin_site_content() from public, anon;
+revoke all on function public.save_site_content_draft(text, integer, boolean, text, text, text, text, text, text, text, text) from public, anon;
+revoke all on function public.publish_site_content(text, integer, text) from public, anon;
 
 grant execute on function public.get_public_site_content() to anon, authenticated;
 grant execute on function public.list_admin_site_content() to authenticated;
