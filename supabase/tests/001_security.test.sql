@@ -1,11 +1,12 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(74);
+select plan(77);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
 select has_table('public', 'directory_profiles', 'Existe la proyección pública aprobada');
+select has_column('public', 'directory_profiles', 'is_published', 'La proyección conserva un estado explícito de publicación');
 select has_table('public', 'contact_requests', 'Existe el historial de solicitudes');
 select has_table('public', 'reviews', 'Existen evaluaciones ligadas a solicitudes');
 select has_table('public', 'audit_log', 'Existe auditoría administrativa');
@@ -21,6 +22,14 @@ select ok(
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.directory_profiles'::regclass),
   'RLS está activo en directory_profiles'
+);
+select has_trigger(
+  'public', 'professional_profiles', 'professional_profile_visibility_sync',
+  'Los cambios de estado sincronizan la visibilidad pública'
+);
+select has_trigger(
+  'public', 'contact_requests', 'contact_request_public_profile_guard',
+  'Las solicitudes nuevas exigen un perfil actualmente publicado'
 );
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.contact_requests'::regclass),

@@ -115,7 +115,7 @@ export async function registerProfessionalAction(
     const errors = parsed.error.flatten().fieldErrors;
     return {
       status: "error",
-      message: "Revisa los datos antes de crear la cuenta.",
+      message: parsed.error.issues[0]?.message ?? "Revisa los datos antes de crear la cuenta.",
       fieldErrors: errors,
     };
   }

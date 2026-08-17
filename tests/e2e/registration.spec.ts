@@ -37,3 +37,25 @@ test("el registro breve recorre cuatro etapas y presenta la postulación", async
   const overflows = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflows).toBe(false);
 });
+
+test("el registro explica el dato inválido antes de avanzar", async ({ page }) => {
+  await page.goto("/registro-tecnico");
+  const form = page.locator("form.wizard-shell");
+
+  await form.getByLabel("Nombre completo").fill("Técnico Ejemplo");
+  await form.getByLabel("Correo electrónico").fill("tecnico@example.com");
+  await form.getByLabel("Celular").fill("912345678");
+  await form.getByLabel("Contraseña", { exact: true }).fill("clavesegura2026");
+  await form.getByLabel("Repetir contraseña").fill("clavesegura2026");
+  await form.getByRole("button", { name: /Siguiente/ }).click();
+
+  await expect(form.getByRole("alert")).toContainText("Incluye al menos una mayúscula");
+  await expect(form.getByRole("heading", { name: "Cuenta y contacto" })).toBeVisible();
+
+  await form.getByLabel("Contraseña", { exact: true }).fill("ClaveSegura2026");
+  await form.getByLabel("Repetir contraseña").fill("ClaveSegura2026");
+  await form.getByRole("button", { name: /Siguiente/ }).click();
+
+  await expect(form.getByRole("heading", { name: "Perfil profesional" })).toBeVisible();
+  await expect(form.getByLabel("Celular")).toHaveValue("+56 9 1234 5678");
+});

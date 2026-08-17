@@ -16,6 +16,8 @@ import { registerProfessionalAction } from "@/app/ingresar/actions";
 import { communeOptionsForRegion } from "@/data/chile-communes";
 import {
   chileRegionOptions,
+  isValidChileanMobile,
+  normalizeChileanMobile,
   professionalModalities,
   professionalServices,
   regionNameFromCode,
@@ -59,6 +61,24 @@ const initialDraft: RegistrationDraft = {
   commune: "",
   modalities: [professionalModalities[0]],
   hasVehicle: false,
+};
+
+const fieldStage: Record<string, number> = {
+  fullName: 0,
+  email: 0,
+  phone: 0,
+  password: 0,
+  confirmPassword: 0,
+  displayName: 1,
+  category: 1,
+  yearsExperience: 1,
+  summary: 1,
+  services: 2,
+  regionCode: 2,
+  commune: 2,
+  modalities: 2,
+  hasVehicle: 2,
+  terms: 3,
 };
 
 function FieldErrors({ errors }: Readonly<{ errors?: string[] }>) {
@@ -109,6 +129,26 @@ export function RegistrationWizard({
     window.localStorage.setItem(storageKey, JSON.stringify(draft));
   }, [draft, storageKey]);
 
+  useEffect(() => {
+    if (state.status !== "error" || !state.fieldErrors) return;
+    const firstInvalidField = Object.keys(state.fieldErrors).find((field) => state.fieldErrors?.[field]?.length);
+    if (!firstInvalidField) return;
+
+    const targetStage = fieldStage[firstInvalidField] ?? 0;
+    let focusFrame = 0;
+    const frame = window.requestAnimationFrame(() => {
+      setCurrentStage(targetStage);
+      setFurthestStage((current) => Math.max(current, targetStage));
+      focusFrame = window.requestAnimationFrame(() => {
+        formRef.current?.querySelector<HTMLElement>(`[name="${firstInvalidField}"]`)?.focus();
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(focusFrame);
+    };
+  }, [state]);
+
   function validateStage(stageIndex: number): boolean {
     setClientMessage("");
     if (stageIndex === 2 && draft.services.length === 0) {
@@ -120,11 +160,29 @@ export function RegistrationWizard({
       return false;
     }
 
+    if (stageIndex === 0 && formRef.current) {
+      const phone = formRef.current.elements.namedItem("phone") as HTMLInputElement | null;
+      const password = formRef.current.elements.namedItem("password") as HTMLInputElement | null;
+      const confirmPassword = formRef.current.elements.namedItem("confirmPassword") as HTMLInputElement | null;
+
+      phone?.setCustomValidity(isValidChileanMobile(phone.value) ? "" : "Ingresa un celular chileno válido.");
+      password?.setCustomValidity(
+        !password.value.match(/[A-ZÁÉÍÓÚÑ]/u)
+          ? "Incluye al menos una mayúscula."
+          : !password.value.match(/[a-záéíóúñ]/u)
+            ? "Incluye al menos una minúscula."
+            : !password.value.match(/[0-9]/u)
+              ? "Incluye al menos un número."
+              : "",
+      );
+      confirmPassword?.setCustomValidity(password?.value === confirmPassword.value ? "" : "Las contraseñas no coinciden.");
+    }
+
     const panel = formRef.current?.querySelector<HTMLElement>(`[data-stage="${stageIndex}"]`);
     const controls = panel?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("input, select, textarea");
     for (const control of controls ?? []) {
       if (!control.checkValidity()) {
-        control.reportValidity();
+        setClientMessage(control.validationMessage || "Revisa los datos de esta etapa.");
         return false;
       }
     }
@@ -161,8 +219,11 @@ export function RegistrationWizard({
       action={action}
       className="wizard-shell"
       onSubmit={(event) => {
-        if (![0, 1, 2, 3].every(validateStage)) {
+        const invalidStage = [0, 1, 2, 3].find((stageIndex) => !validateStage(stageIndex));
+        if (invalidStage !== undefined) {
           event.preventDefault();
+          setCurrentStage(invalidStage);
+          setFurthestStage((current) => Math.max(current, invalidStage));
           return;
         }
         if (!isLive) {
@@ -197,13 +258,13 @@ export function RegistrationWizard({
         <p>{stage.description}</p>
         <p className="contact-submit-help">La galería, títulos, capacitaciones y documentos se completarán después desde el panel profesional.</p>
 
-        {state.message ? <p className="auth-message" data-status={state.status} role="status">{state.message}</p> : null}
+        {state.message ? <p className="auth-message" data-status={state.status} role={state.status === "error" ? "alert" : "status"}>{state.message}</p> : null}
         {clientMessage ? <p className="auth-message" role="alert">{clientMessage}</p> : null}
 
         <div className="wizard-stage-panel" data-stage="0" hidden={currentStage !== 0}>
           <div className="field">
             <label htmlFor={`${kind}-full-name`}>{kind === "company" ? "Nombre del responsable" : "Nombre completo"}</label>
-            <input autoComplete="name" className="input" id={`${kind}-full-name`} name="fullName" onChange={(event) => setDraft({ ...draft, fullName: event.target.value })} required value={draft.fullName} />
+            <input autoComplete="name" className="input" id={`${kind}-full-name`} minLength={3} name="fullName" onChange={(event) => setDraft({ ...draft, fullName: event.target.value })} required value={draft.fullName} />
             <FieldErrors errors={state.fieldErrors?.fullName} />
           </div>
           <div className="wizard-field-grid">
@@ -214,8 +275,9 @@ export function RegistrationWizard({
             </div>
             <div className="field">
               <label htmlFor={`${kind}-phone`}>Celular</label>
-              <input autoComplete="tel" className="input" id={`${kind}-phone`} name="phone" onChange={(event) => setDraft({ ...draft, phone: event.target.value })} pattern="\+?56\s?9\s?\d{4}\s?\d{4}" placeholder="+56 9 1234 5678" required type="tel" value={draft.phone} />
+              <input autoComplete="tel" className="input" id={`${kind}-phone`} inputMode="tel" name="phone" onBlur={(event) => setDraft((current) => ({ ...current, phone: normalizeChileanMobile(event.target.value) }))} onChange={(event) => setDraft({ ...draft, phone: event.target.value })} placeholder="+56 9 1234 5678" required type="tel" value={draft.phone} />
               <FieldErrors errors={state.fieldErrors?.phone} />
+              <small className="wizard-help">También puedes escribirlo como 912345678.</small>
             </div>
           </div>
           <div className="wizard-field-grid">
@@ -235,7 +297,7 @@ export function RegistrationWizard({
         <div className="wizard-stage-panel" data-stage="1" hidden={currentStage !== 1}>
           <div className="field">
             <label htmlFor={`${kind}-display-name`}>{kind === "company" ? "Nombre o razón social visible" : "Nombre que verá el cliente"}</label>
-            <input className="input" id={`${kind}-display-name`} maxLength={100} name="displayName" onChange={(event) => setDraft({ ...draft, displayName: event.target.value })} required value={draft.displayName} />
+            <input className="input" id={`${kind}-display-name`} maxLength={100} minLength={2} name="displayName" onChange={(event) => setDraft({ ...draft, displayName: event.target.value })} required value={draft.displayName} />
             <FieldErrors errors={state.fieldErrors?.displayName} />
           </div>
           <div className="wizard-field-grid">

@@ -32,6 +32,16 @@ describe("registro profesional breve", () => {
     expect(result.services).toHaveLength(2);
   });
 
+  it.each([
+    "912345678",
+    "56912345678",
+    "+56912345678",
+    "+56 9 1234 5678",
+  ])("acepta y normaliza el celular chileno %s", (phone) => {
+    const result = professionalRegistrationSchema.parse({ ...validRegistration, phone });
+    expect(result.phone).toBe("+56 9 1234 5678");
+  });
+
   it("rechaza celulares que no tengan formato chileno", () => {
     const result = professionalRegistrationSchema.safeParse({ ...validRegistration, phone: "+54 9 1234 5678" });
     expect(result.success).toBe(false);

@@ -235,6 +235,7 @@ export async function listDirectoryProfessionals(): Promise<Professional[]> {
   const { data, error } = await supabase
     .from("directory_profiles")
     .select(directoryColumns)
+    .eq("is_published", true)
     .eq("is_demo", false)
     .order("score", { ascending: false })
     .limit(200);
@@ -253,6 +254,7 @@ export async function getDirectoryProfessional(slug: string): Promise<Profession
     .from("directory_profiles")
     .select(directoryColumns)
     .eq("slug", slug)
+    .eq("is_published", true)
     .eq("is_demo", false)
     .maybeSingle();
 

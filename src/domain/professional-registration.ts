@@ -41,6 +41,22 @@ export const chileRegionOptions = [
   { code: "CL-MA", name: "Magallanes y de la Antártica Chilena" },
 ] as const;
 
+export function normalizeChileanMobile(value: string): string {
+  const digits = value.replace(/\D/gu, "");
+  const nationalNumber = digits.startsWith("56")
+    ? digits.slice(2)
+    : digits.startsWith("0")
+      ? digits.slice(1)
+      : digits;
+
+  if (!/^9\d{8}$/u.test(nationalNumber)) return value.trim();
+  return `+56 9 ${nationalNumber.slice(1, 5)} ${nationalNumber.slice(5)}`;
+}
+
+export function isValidChileanMobile(value: string): boolean {
+  return /^\+56 9 \d{4} \d{4}$/u.test(normalizeChileanMobile(value));
+}
+
 export const professionalRegistrationSchema = z
   .object({
     fullName: z.string().trim().min(3, "Ingresa tu nombre completo.").max(100),
@@ -48,7 +64,8 @@ export const professionalRegistrationSchema = z
     phone: z
       .string()
       .trim()
-      .regex(/^\+?56\s?9\s?\d{4}\s?\d{4}$/u, "Ingresa un celular chileno, por ejemplo +56 9 1234 5678."),
+      .transform(normalizeChileanMobile)
+      .refine(isValidChileanMobile, "Ingresa un celular chileno, por ejemplo +56 9 1234 5678."),
     password: z
       .string()
       .min(12, "La contraseña debe tener al menos 12 caracteres.")

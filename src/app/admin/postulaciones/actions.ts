@@ -53,9 +53,6 @@ export async function moderateProfessionalApplicationAction(
     };
   }
 
-  revalidatePath("/admin");
-  revalidatePath("/admin/postulaciones");
-  revalidatePath(`/admin/postulaciones/${profileId}`);
-  revalidatePath("/tecnicos");
+  revalidatePath("/", "layout");
   return { status: "success", message: decisionMessages[parsed.data.decision] };
 }
