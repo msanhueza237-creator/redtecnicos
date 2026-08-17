@@ -310,6 +310,91 @@
 .admin-bar-track { height: 9px; overflow: hidden; border-radius: 999px; background: #e8eff3; }
 .admin-bar-track span { display: block; height: 100%; border-radius: inherit; background: var(--brand-surface); }
 
+.admin-statistics-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
+  padding: 15px 18px;
+}
+
+.admin-statistics-toolbar > div { display: grid; gap: 2px; }
+.admin-statistics-toolbar > div strong { color: var(--ink-strong); font-size: 13px; }
+.admin-statistics-toolbar > div span { color: var(--muted); font-size: 11px; }
+.admin-statistics-periods { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.admin-statistics-period {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #b7ccd8;
+  border-radius: 999px;
+  color: var(--brand-action);
+  font-size: 12px;
+  font-weight: 850;
+  padding: 7px 12px;
+}
+
+.admin-statistics-period:hover { border-color: var(--brand-action); background: var(--brand-soft); }
+.admin-statistics-period[aria-current="page"] { border-color: var(--brand-action); background: var(--brand-action); color: #fff; }
+.admin-statistics-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.admin-statistics-page > .dashboard-card { margin-bottom: 20px; }
+.admin-statistics-rankings { margin-bottom: 20px; }
+.admin-statistics-trend-scroll { overflow-x: auto; padding: 2px 2px 8px; }
+
+.admin-statistics-trend {
+  display: grid;
+  min-width: 640px;
+  min-height: 220px;
+  grid-auto-columns: minmax(46px, 1fr);
+  grid-auto-flow: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-statistics-trend li {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: 22px 150px auto;
+  gap: 6px;
+  text-align: center;
+}
+
+.admin-statistics-trend li > strong { color: var(--ink-strong); font-size: 12px; }
+.admin-statistics-trend li > small { color: var(--muted); font-size: 9px; line-height: 1.25; }
+
+.admin-statistics-column {
+  display: flex;
+  min-height: 150px;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 7px 7px 3px 3px;
+  background: linear-gradient(to top, #edf5f9, #f8fbfc);
+}
+
+.admin-statistics-column > span {
+  display: block;
+  width: 100%;
+  min-height: 2px;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, #49a6d8, var(--brand-action));
+}
+
+.admin-statistics-empty { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+.admin-statistics-scope-list { display: grid; gap: 13px; list-style: none; margin: 0; padding: 0; }
+.admin-statistics-scope-list li { display: flex; align-items: flex-start; gap: 9px; color: #52646e; font-size: 12px; line-height: 1.5; }
+.admin-statistics-scope-list svg { flex: 0 0 auto; color: var(--brand-action); margin-top: 1px; }
+.admin-statistics-scope-list strong { color: var(--ink-strong); }
+.admin-statistics-updated { border-top: 1px solid var(--border); color: var(--muted); font-size: 10px; margin: 18px 0 0; padding-top: 12px; }
+
 .admin-content-preview {
   border-left: 4px solid var(--brand-surface);
   border-radius: 8px;
@@ -411,6 +496,9 @@
 @media (max-width: 780px) {
   .admin-page-heading,
   .admin-table-toolbar { align-items: stretch; flex-direction: column; }
+  .admin-statistics-toolbar { align-items: stretch; flex-direction: column; }
+  .admin-statistics-periods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .admin-statistics-period { padding-inline: 6px; }
   .admin-detail-grid,
   .admin-settings-grid { grid-template-columns: 1fr; }
   .admin-info-list > div { grid-template-columns: 1fr; }
@@ -450,4 +538,6 @@
   .admin-main { padding: 24px 14px 36px; }
   .admin-complaint-decision-grid,
   .admin-audit-filters { grid-template-columns: minmax(0, 1fr); }
+  .admin-statistics-periods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-statistics-trend { min-width: 560px; }
 }

@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(55);
+select plan(58);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -185,6 +185,21 @@ select function_privs_are(
   array['uuid','public.complaint_status','public.complaint_priority','text','text'],
   'authenticated', array['EXECUTE'],
   'authenticated invoca la función, que valida el rol internamente'
+);
+
+select has_function(
+  'public', 'get_admin_statistics', array['integer'],
+  'Existe la consulta administrativa de estadísticas agregadas'
+);
+select function_privs_are(
+  'public', 'get_admin_statistics', array['integer'],
+  'anon', array[]::text[],
+  'anon no puede consultar estadísticas administrativas'
+);
+select function_privs_are(
+  'public', 'get_admin_statistics', array['integer'],
+  'authenticated', array['EXECUTE'],
+  'authenticated invoca la función, que valida admin o superadmin internamente'
 );
 
 select * from finish();
