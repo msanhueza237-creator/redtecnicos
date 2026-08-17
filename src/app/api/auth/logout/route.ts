@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { clearDemoSession } from "@/lib/auth/demo-session";
+import { publicSiteUrl } from "@/lib/site-url";
 import { isSupabaseAuthMode, isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,12 +37,12 @@ export async function POST(request: NextRequest) {
   if (isSupabaseAuthMode() && isSupabaseConfigured()) {
     const supabase = await createClient();
     await supabase.auth.signOut();
-    return NextResponse.redirect(new URL("/ingresar?logout=1", request.url), 303);
+    return NextResponse.redirect(publicSiteUrl("/ingresar?logout=1"), 303);
   }
 
   await clearDemoSession();
   const entryPath = request.nextUrl.searchParams.get("area") === "administracion"
     ? "/acceso-demo/administracion"
     : "/acceso-demo";
-  return NextResponse.redirect(new URL(`${entryPath}?logout=1`, request.url), 303);
+  return NextResponse.redirect(publicSiteUrl(`${entryPath}?logout=1`), 303);
 }

@@ -8,6 +8,7 @@ import {
   reviewInvitationEmailTemplate,
   smtpTestEmailTemplate,
 } from "@/lib/email/templates";
+import { publicSiteUrl } from "@/lib/site-url";
 
 interface SmtpConfig {
   host: string;
@@ -76,10 +77,6 @@ function transporter() {
   };
 }
 
-function siteUrl(): string {
-  return (process.env.APP_URL?.trim() || "https://redtecnicos.cl").replace(/\/$/u, "");
-}
-
 export async function verifySmtpConnection(): Promise<void> {
   const { client } = transporter();
   try {
@@ -108,8 +105,8 @@ export async function sendContactRequestEmails(context: ContactEmailContext): Pr
   if (!value) return { configured: false, customer: "skipped", professional: "skipped" };
 
   const { client, config } = transporter();
-  const trackingUrl = `${siteUrl()}/seguimiento/${encodeURIComponent(context.trackingToken)}`;
-  const verificationUrl = `${siteUrl()}/api/v1/contact-requests/verify/${encodeURIComponent(context.verificationToken)}?tracking=${encodeURIComponent(context.trackingToken)}`;
+  const trackingUrl = publicSiteUrl(`/seguimiento/${encodeURIComponent(context.trackingToken)}`);
+  const verificationUrl = publicSiteUrl(`/api/v1/contact-requests/verify/${encodeURIComponent(context.verificationToken)}?tracking=${encodeURIComponent(context.trackingToken)}`);
   const from = { name: config.fromName, address: config.fromEmail };
   const customerTemplate = customerContactEmailTemplate({
     customerName: context.customerName,
@@ -128,7 +125,7 @@ export async function sendContactRequestEmails(context: ContactEmailContext): Pr
     service: context.service,
     commune: context.commune,
     description: context.description,
-    panelUrl: `${siteUrl()}/panel/solicitudes`,
+    panelUrl: publicSiteUrl("/panel/solicitudes"),
   });
 
   let customer: PromiseSettledResult<unknown>;
@@ -157,7 +154,7 @@ export async function sendReviewInvitationEmail(context: ReviewInvitationContext
     customerName: context.customerName,
     professionalName: context.professionalName,
     service: context.service,
-    trackingUrl: `${siteUrl()}/seguimiento/${encodeURIComponent(context.trackingToken)}`,
+    trackingUrl: publicSiteUrl(`/seguimiento/${encodeURIComponent(context.trackingToken)}`),
   });
 
   try {

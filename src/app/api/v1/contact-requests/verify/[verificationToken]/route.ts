@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { trackingTokenSchema } from "@/domain/contact-request";
 import { verifyLiveContactRequestEmail } from "@/lib/contact-requests/repository";
+import { publicSiteUrl } from "@/lib/site-url";
 import { isSupabaseMode } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
@@ -15,13 +16,13 @@ export async function GET(
   const verification = trackingTokenSchema.safeParse((await params).verificationToken);
 
   if (!isSupabaseMode() || !tracking.success || !verification.success) {
-    return NextResponse.redirect(new URL("/tecnicos?verification=invalid", request.url), 303);
+    return NextResponse.redirect(publicSiteUrl("/tecnicos?verification=invalid"), 303);
   }
 
   try {
     await verifyLiveContactRequestEmail(verification.data, tracking.data);
-    return NextResponse.redirect(new URL(`/seguimiento/${encodeURIComponent(tracking.data)}?verification=success`, request.url), 303);
+    return NextResponse.redirect(publicSiteUrl(`/seguimiento/${encodeURIComponent(tracking.data)}?verification=success`), 303);
   } catch {
-    return NextResponse.redirect(new URL(`/seguimiento/${encodeURIComponent(tracking.data)}?verification=error`, request.url), 303);
+    return NextResponse.redirect(publicSiteUrl(`/seguimiento/${encodeURIComponent(tracking.data)}?verification=error`), 303);
   }
 }
