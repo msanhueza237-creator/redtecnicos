@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(39);
+select plan(47);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -117,6 +117,41 @@ select function_privs_are('public', 'list_public_reviews', array['integer'], 'au
 select ok(
   not has_table_privilege('anon', 'public.contact_requests', 'INSERT'),
   'la inserción directa permanece revocada'
+);
+
+select has_table('public', 'chile_communes', 'Existe el catálogo territorial oficial');
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.chile_communes'::regclass),
+  'RLS está activo en el catálogo de comunas'
+);
+select table_privs_are(
+  'public', 'chile_communes', 'anon', array['SELECT'],
+  'anon solo puede leer el catálogo territorial'
+);
+select is(
+  (select count(*) from public.chile_communes),
+  346::bigint,
+  'el catálogo contiene las 346 comunas de Chile'
+);
+select is(
+  (select count(*) from public.chile_communes where region_code = 'CL-RM'),
+  52::bigint,
+  'la Región Metropolitana contiene 52 comunas'
+);
+select has_function(
+  'public',
+  'update_owned_profile_coverage',
+  array['text','text[]','text[]','boolean'],
+  'Existe la actualización segura de cobertura profesional'
+);
+select function_privs_are(
+  'public', 'update_owned_profile_coverage', array['text','text[]','text[]','boolean'],
+  'anon', array[]::text[], 'anon no puede modificar coberturas'
+);
+select function_privs_are(
+  'public', 'update_owned_profile_coverage', array['text','text[]','text[]','boolean'],
+  'authenticated', array['EXECUTE'],
+  'authenticated invoca la función, que valida propiedad y rol internamente'
 );
 
 select * from finish();

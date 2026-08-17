@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { registerProfessionalAction } from "@/app/ingresar/actions";
+import { communeOptionsForRegion } from "@/data/chile-communes";
 import {
   chileRegionOptions,
   professionalModalities,
@@ -83,6 +84,7 @@ export function RegistrationWizard({
   const storageKey = `red-tecnicos-registration-${kind}`;
   const stage = stages[currentStage] ?? stages[0];
   const Icon = kind === "company" ? Building2 : UserRound;
+  const communeOptions = communeOptionsForRegion(draft.regionCode);
 
   useEffect(() => {
     const loadDraft = window.setTimeout(() => {
@@ -277,7 +279,7 @@ export function RegistrationWizard({
           <div className="wizard-field-grid">
             <div className="field">
               <label htmlFor={`${kind}-region`}>Región principal</label>
-              <select className="select" id={`${kind}-region`} name="regionCode" onChange={(event) => setDraft({ ...draft, regionCode: event.target.value })} required value={draft.regionCode}>
+              <select className="select" id={`${kind}-region`} name="regionCode" onChange={(event) => setDraft({ ...draft, regionCode: event.target.value, commune: "" })} required value={draft.regionCode}>
                 <option value="">Selecciona una región</option>
                 {chileRegionOptions.map((region) => <option key={region.code} value={region.code}>{region.name}</option>)}
               </select>
@@ -285,7 +287,10 @@ export function RegistrationWizard({
             </div>
             <div className="field">
               <label htmlFor={`${kind}-commune`}>Comuna principal</label>
-              <input className="input" id={`${kind}-commune`} maxLength={100} name="commune" onChange={(event) => setDraft({ ...draft, commune: event.target.value })} placeholder="Ej.: Puerto Montt" required value={draft.commune} />
+              <select className="select" disabled={!draft.regionCode} id={`${kind}-commune`} name="commune" onChange={(event) => setDraft({ ...draft, commune: event.target.value })} required value={draft.commune}>
+                <option value="">{draft.regionCode ? "Selecciona una comuna" : "Selecciona primero una región"}</option>
+                {communeOptions.map((commune) => <option key={commune.code} value={commune.name}>{commune.name}</option>)}
+              </select>
               <FieldErrors errors={state.fieldErrors?.commune} />
             </div>
           </div>

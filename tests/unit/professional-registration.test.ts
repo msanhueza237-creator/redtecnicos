@@ -45,6 +45,20 @@ describe("registro profesional breve", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rechaza una comuna que no pertenece a la región seleccionada", () => {
+    const result = professionalRegistrationSchema.safeParse({
+      ...validRegistration,
+      commune: "Puerto Montt",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.commune).toContain(
+        "Selecciona una comuna válida de la región.",
+      );
+    }
+  });
+
   it("no incluye referencias, galería, títulos ni documentos en el registro inicial", () => {
     const keys = Object.keys(professionalRegistrationSchema.shape);
     expect(keys).not.toContain("references");

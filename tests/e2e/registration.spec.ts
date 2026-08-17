@@ -23,7 +23,7 @@ test("el registro breve recorre cuatro etapas y presenta la postulación", async
   await expect(form.getByRole("heading", { name: "Servicios y cobertura" })).toBeVisible();
   await form.getByLabel("Instalación de aire acondicionado").check();
   await form.getByLabel("Región principal").selectOption("CL-RM");
-  await form.getByLabel("Comuna principal").fill("Santiago");
+  await form.getByLabel("Comuna principal").selectOption("Santiago");
   await form.getByRole("button", { name: /Siguiente/ }).click();
 
   await expect(form.getByRole("heading", { name: "Revisión y envío" })).toBeVisible();

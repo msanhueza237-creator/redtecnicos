@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isCommuneInRegion } from "@/data/chile-communes";
 
 export const professionalServices = [
   "Instalación de aire acondicionado",
@@ -75,6 +76,15 @@ export const professionalRegistrationSchema = z
     modalities: z.array(z.enum(professionalModalities)).min(1, "Selecciona al menos una modalidad."),
     hasVehicle: z.boolean(),
     terms: z.literal("on", { error: "Debes aceptar los términos para continuar." }),
+  })
+  .superRefine((data, context) => {
+    if (!isCommuneInRegion(data.regionCode, data.commune)) {
+      context.addIssue({
+        code: "custom",
+        path: ["commune"],
+        message: "Selecciona una comuna válida de la región.",
+      });
+    }
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["password"],
