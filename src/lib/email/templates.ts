@@ -223,6 +223,92 @@ export function applicantRegistrationEmailTemplate(input: ApplicantRegistrationE
   };
 }
 
+export interface QualificationSubmissionEmailInput {
+  applicantName: string;
+  professionalName: string;
+  qualificationTitle: string;
+  qualificationType: string;
+  panelUrl: string;
+  adminUrl: string;
+}
+
+export function qualificationApplicantEmailTemplate(input: QualificationSubmissionEmailInput): EmailTemplate {
+  return {
+    subject: `Documento recibido · ${input.qualificationTitle}`,
+    text: `Hola ${input.applicantName},\n\nRecibimos el respaldo de ${input.qualificationTitle}. El archivo superó el análisis de seguridad y quedó pendiente de revisión administrativa.\n\nPuedes revisar su estado en ${input.panelUrl}\n\nEl archivo completo permanecerá privado.`,
+    html: emailLayout({
+      preheader: `Recibimos el respaldo de ${input.qualificationTitle}.`,
+      eyebrow: "Documento recibido",
+      title: "Tu antecedente quedó en revisión",
+      intro: `Hola ${input.applicantName}. El archivo fue recibido y superó el control automático de seguridad.`,
+      bodyHtml: `${detailsTable([
+        { label: "Perfil", value: input.professionalName },
+        { label: "Tipo", value: input.qualificationType },
+        { label: "Antecedente", value: input.qualificationTitle },
+        { label: "Estado", value: "Pendiente de revisión administrativa" },
+      ])}<p style="margin:18px 0 0;color:#50636e;font-size:13px;line-height:20px">El documento completo es privado. Si se aprueba, el perfil público mostrará únicamente el nombre de la formación, la institución y el año.</p>`,
+      action: { label: "Revisar mis documentos", url: input.panelUrl },
+      footnote: "Nunca solicitaremos que envíes documentos respondiendo directamente a este correo.",
+    }),
+  };
+}
+
+export function qualificationAdministratorEmailTemplate(input: QualificationSubmissionEmailInput): EmailTemplate {
+  return {
+    subject: `Nuevo documento por revisar · ${input.professionalName}`,
+    text: `Nuevo documento en Red Técnicos Chile\n\nPerfil: ${input.professionalName}\nTipo: ${input.qualificationType}\nAntecedente: ${input.qualificationTitle}\nControl antivirus: Superado\nEstado: Pendiente de revisión\n\nRevisar en ${input.adminUrl}`,
+    html: emailLayout({
+      preheader: `${input.professionalName} cargó un documento privado.`,
+      eyebrow: "Revisión documental",
+      title: "Hay un nuevo antecedente por revisar",
+      intro: "El archivo superó el control automático y está disponible únicamente para personal autorizado.",
+      bodyHtml: detailsTable([
+        { label: "Perfil", value: input.professionalName },
+        { label: "Tipo", value: input.qualificationType },
+        { label: "Antecedente", value: input.qualificationTitle },
+        { label: "Seguridad", value: "Análisis antivirus superado" },
+        { label: "Estado", value: "Pendiente de revisión" },
+      ]),
+      action: { label: "Abrir bandeja documental", url: input.adminUrl },
+      footnote: "El enlace administrativo exige una sesión autorizada y el documento no se adjunta al correo.",
+    }),
+  };
+}
+
+export interface QualificationDecisionEmailInput {
+  applicantName: string;
+  qualificationTitle: string;
+  decision: "approved" | "changes_requested" | "rejected";
+  reason: string;
+  panelUrl: string;
+}
+
+export function qualificationDecisionEmailTemplate(input: QualificationDecisionEmailInput): EmailTemplate {
+  const decisionCopy = {
+    approved: { subject: "Antecedente aprobado", state: "Aprobado", intro: "El antecedente fue revisado y aprobado." },
+    changes_requested: { subject: "Se requieren cambios", state: "Cambios solicitados", intro: "La revisión requiere que reemplaces o corrijas el antecedente." },
+    rejected: { subject: "Antecedente rechazado", state: "Rechazado", intro: "El antecedente no fue aprobado en esta revisión." },
+  }[input.decision];
+
+  return {
+    subject: `${decisionCopy.subject} · ${input.qualificationTitle}`,
+    text: `Hola ${input.applicantName},\n\n${decisionCopy.intro}\n\nAntecedente: ${input.qualificationTitle}\nEstado: ${decisionCopy.state}\nMotivo: ${input.reason}\n\nRevisa tu panel: ${input.panelUrl}`,
+    html: emailLayout({
+      preheader: `${input.qualificationTitle}: ${decisionCopy.state}.`,
+      eyebrow: "Resultado de revisión",
+      title: decisionCopy.subject,
+      intro: `Hola ${input.applicantName}. ${decisionCopy.intro}`,
+      bodyHtml: `${detailsTable([
+        { label: "Antecedente", value: input.qualificationTitle },
+        { label: "Estado", value: decisionCopy.state },
+        { label: "Motivo", value: input.reason },
+      ])}<p style="margin:18px 0 0;color:#50636e;font-size:13px;line-height:20px">Solo las credenciales aprobadas pueden aparecer en el perfil público. El archivo completo permanece privado.</p>`,
+      action: { label: "Abrir formación y documentos", url: input.panelUrl },
+      footnote: "Si se solicitaron cambios, retira el antecedente observado y carga un respaldo corregido desde tu panel.",
+    }),
+  };
+}
+
 export interface ReviewInvitationEmailInput {
   customerName: string;
   professionalName: string;

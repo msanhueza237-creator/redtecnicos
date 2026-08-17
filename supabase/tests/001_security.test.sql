@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(81);
+select plan(93);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -118,6 +118,38 @@ select ok(
       and cmd = 'DELETE'
   ),
   'El propietario puede retirar fotografías pendientes mediante RLS'
+);
+
+select has_column('public', 'qualifications', 'original_file_name', 'La formación registra el nombre seguro del archivo');
+select has_column('public', 'qualifications', 'mime_type', 'La formación registra el MIME validado');
+select has_column('public', 'qualifications', 'file_size_bytes', 'La formación registra el tamaño validado');
+select has_column('public', 'qualifications', 'sha256', 'La formación registra la huella SHA-256');
+select has_column('public', 'qualifications', 'scan_status', 'La formación registra el estado antivirus');
+select has_column('public', 'qualifications', 'scanned_at', 'La formación registra la fecha del análisis');
+select has_column('public', 'qualifications', 'scan_engine', 'La formación registra el motor de análisis');
+select has_function(
+  'public', 'moderate_qualification', array['uuid', 'text', 'text'],
+  'Existe la moderación auditada de títulos y capacitaciones'
+);
+select function_privs_are(
+  'public', 'moderate_qualification', array['uuid', 'text', 'text'],
+  'anon', array[]::text[], 'anon no puede moderar documentos'
+);
+select function_privs_are(
+  'public', 'moderate_qualification', array['uuid', 'text', 'text'],
+  'authenticated', array['EXECUTE'],
+  'authenticated invoca la función, que valida el rol internamente'
+);
+select table_privs_are(
+  'public', 'qualifications', 'authenticated', array['SELECT'],
+  'el cliente autenticado no puede insertar ni alterar análisis documentales directamente'
+);
+select ok(
+  (select position('qualification-documents' in coalesce(with_check, '')) = 0
+   from pg_policies
+   where schemaname = 'storage' and tablename = 'objects'
+     and policyname = 'storage_owner_insert' and cmd = 'INSERT'),
+  'el propietario no puede cargar directamente al bucket documental definitivo'
 );
 
 select has_column('public', 'contact_requests', 'email_verification_token_hash', 'Las solicitudes permiten verificar el correo con un token separado');

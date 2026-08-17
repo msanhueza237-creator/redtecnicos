@@ -7,9 +7,13 @@ import {
   applicantRegistrationEmailTemplate,
   customerContactEmailTemplate,
   professionalRequestEmailTemplate,
+  qualificationAdministratorEmailTemplate,
+  qualificationApplicantEmailTemplate,
+  qualificationDecisionEmailTemplate,
   reviewInvitationEmailTemplate,
   smtpTestEmailTemplate,
 } from "@/lib/email/templates";
+import { qualificationTypeLabel, type ProfessionalQualificationType } from "@/domain/professional-qualification";
 import { publicSiteUrl } from "@/lib/site-url";
 
 interface SmtpConfig {
@@ -52,6 +56,22 @@ export interface ProfessionalRegistrationMailDeliveryResult {
   configured: boolean;
   administrator: "sent" | "failed" | "skipped";
   applicant: "sent" | "failed" | "skipped";
+}
+
+export interface QualificationSubmissionEmailContext {
+  applicantEmail: string | null;
+  applicantName: string;
+  professionalName: string;
+  qualificationTitle: string;
+  qualificationType: ProfessionalQualificationType;
+}
+
+export interface QualificationDecisionEmailContext {
+  applicantEmail: string;
+  applicantName: string;
+  qualificationTitle: string;
+  decision: "approved" | "changes_requested" | "rejected";
+  reason: string;
 }
 
 function administratorNotificationEmail(): string | null {
@@ -218,6 +238,73 @@ export async function sendProfessionalRegistrationEmails(
         ? administrator.status === "fulfilled" ? "sent" : "failed"
         : "skipped",
     };
+  } finally {
+    client.close();
+  }
+}
+
+export async function sendQualificationSubmissionEmails(
+  context: QualificationSubmissionEmailContext,
+): Promise<"sent" | "partial" | "failed" | "skipped"> {
+  if (!smtpConfig()) return "skipped";
+  const administratorEmail = administratorNotificationEmail();
+  if (!administratorEmail && !context.applicantEmail) return "skipped";
+
+  const { client, config } = transporter();
+  const from = { name: config.fromName, address: config.fromEmail };
+  const templateInput = {
+    applicantName: context.applicantName,
+    professionalName: context.professionalName,
+    qualificationTitle: context.qualificationTitle,
+    qualificationType: qualificationTypeLabel(context.qualificationType),
+    panelUrl: publicSiteUrl("/panel/formacion"),
+    adminUrl: publicSiteUrl("/admin/documentos"),
+  };
+  const deliveries: Array<Promise<unknown>> = [];
+  if (context.applicantEmail) {
+    deliveries.push(client.sendMail({
+      from,
+      to: context.applicantEmail,
+      ...qualificationApplicantEmailTemplate(templateInput),
+    }));
+  }
+  if (administratorEmail) {
+    deliveries.push(client.sendMail({
+      from,
+      to: administratorEmail,
+      ...(context.applicantEmail ? { replyTo: context.applicantEmail } : {}),
+      ...qualificationAdministratorEmailTemplate(templateInput),
+    }));
+  }
+
+  try {
+    const results = await Promise.allSettled(deliveries);
+    const sent = results.filter((result) => result.status === "fulfilled").length;
+    if (sent === results.length) return "sent";
+    return sent > 0 ? "partial" : "failed";
+  } finally {
+    client.close();
+  }
+}
+
+export async function sendQualificationDecisionEmail(
+  context: QualificationDecisionEmailContext,
+): Promise<SingleMailDeliveryResult> {
+  if (!smtpConfig()) return "skipped";
+  const { client, config } = transporter();
+  const template = qualificationDecisionEmailTemplate({
+    ...context,
+    panelUrl: publicSiteUrl("/panel/formacion"),
+  });
+  try {
+    await client.sendMail({
+      from: { name: config.fromName, address: config.fromEmail },
+      to: context.applicantEmail,
+      ...template,
+    });
+    return "sent";
+  } catch {
+    return "failed";
   } finally {
     client.close();
   }
