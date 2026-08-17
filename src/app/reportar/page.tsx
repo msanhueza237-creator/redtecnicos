@@ -5,6 +5,8 @@ import { ComplaintReportForm } from "@/components/complaint-report-form";
 import { isSupabaseMode } from "@/lib/supabase/config";
 
 export const metadata: Metadata = { title: "Reportar un problema" };
+export const dynamic = "force-dynamic";
+
 export default function ReportPage() {
   const isLive = isSupabaseMode();
   return <>
