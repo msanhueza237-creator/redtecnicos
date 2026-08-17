@@ -66,8 +66,7 @@ test("the administrator opens the isolated shell and sees all sections", async (
   await expect(page.locator(".admin-shell")).toBeVisible();
   await expect(page.locator(".admin-topbar")).toContainText("Sesión demo");
   await expect(page.locator(".admin-session strong")).toHaveText("Administrador");
-  await expect(page.getByRole("navigation", { name: "Secciones administrativas" }).locator(".admin-nav-link"))
-    .toHaveCount(adminSections.length);
+  await expect(page.locator(".admin-nav-link")).toHaveCount(adminSections.length);
   await expect(page.locator(".site-header")).toHaveCount(0);
   await expect(page.locator(".site-footer")).toHaveCount(0);
 
@@ -87,12 +86,16 @@ test("a technician session cannot enter the administrative area", async ({ page 
 test("all administrative sections are real routes with an active navigation state", async ({ page }) => {
   test.setTimeout(120_000);
   await enterAs(page, "administrador");
-  const navigation = page.getByRole("navigation", { name: "Secciones administrativas" });
 
   for (const section of adminSections) {
-    const link = navigation.getByRole("link", { name: section.label, exact: true });
+    const link = page.locator(`.admin-nav-link[href="${section.href}"]`);
     await expect(link).toHaveAttribute("href", section.href);
-    await link.click();
+    const mobileSelector = page.getByLabel("Sección administrativa");
+    if (await mobileSelector.isVisible()) {
+      await mobileSelector.selectOption(section.href);
+    } else {
+      await link.click();
+    }
     await expect(page).toHaveURL(new RegExp(`${section.href.replaceAll("/", "\\/")}$`), {
       timeout: 30_000,
     });

@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(47);
+select plan(55);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -152,6 +152,39 @@ select function_privs_are(
   'public', 'update_owned_profile_coverage', array['text','text[]','text[]','boolean'],
   'authenticated', array['EXECUTE'],
   'authenticated invoca la función, que valida propiedad y rol internamente'
+);
+
+select has_table('public', 'complaints', 'Existe la bandeja privada de reclamos');
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.complaints'::regclass),
+  'RLS está activo en reclamos'
+);
+select table_privs_are('public', 'complaints', 'anon', array[]::text[], 'anon no accede directamente a reclamos');
+select has_function(
+  'public', 'create_public_complaint',
+  array['text','text','text','public.complaint_category','text','text','public.complaint_related_type','text','text','text'],
+  'Existe la recepción pública segura de reclamos'
+);
+select function_privs_are(
+  'public', 'create_public_complaint',
+  array['text','text','text','public.complaint_category','text','text','public.complaint_related_type','text','text','text'],
+  'anon', array['EXECUTE'], 'anon solo puede crear reclamos mediante la función validada'
+);
+select has_function(
+  'public', 'update_complaint_case',
+  array['uuid','public.complaint_status','public.complaint_priority','text','text'],
+  'Existe la gestión auditada de casos'
+);
+select function_privs_are(
+  'public', 'update_complaint_case',
+  array['uuid','public.complaint_status','public.complaint_priority','text','text'],
+  'anon', array[]::text[], 'anon no puede gestionar reclamos'
+);
+select function_privs_are(
+  'public', 'update_complaint_case',
+  array['uuid','public.complaint_status','public.complaint_priority','text','text'],
+  'authenticated', array['EXECUTE'],
+  'authenticated invoca la función, que valida el rol internamente'
 );
 
 select * from finish();

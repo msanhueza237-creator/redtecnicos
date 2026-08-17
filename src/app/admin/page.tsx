@@ -4,35 +4,37 @@ import { ClipboardList, FileSearch, Images, MessageSquareWarning, UserRoundCheck
 import { AdminDemoNotice, AdminOperationalNotice, AdminPageHeading, AdminStatus, AdminTableCard } from "@/components/admin/admin-ui";
 import { adminApplications, statusTone } from "@/data/admin-demo";
 import { regionNameFromCode } from "@/domain/professional-registration";
+import { listAdminComplaints } from "@/lib/admin/complaints";
 import { listProfessionalApplications, profileStatusLabels, profileStatusTone } from "@/lib/admin/professional-applications";
 import { listAdminReviews } from "@/lib/admin/reviews";
 import { listDemoReviews } from "@/lib/contact-requests/demo-store";
 import { isSupabaseAuthMode } from "@/lib/supabase/config";
 
-export const metadata: Metadata = { title: "Administración demo" };
+export const metadata: Metadata = { title: "Administración" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   if (isSupabaseAuthMode()) {
-    const [result, reviewsResult] = await Promise.all([
+    const [result, reviewsResult, complaintsResult] = await Promise.all([
       listProfessionalApplications(10),
       listAdminReviews(100),
+      listAdminComplaints(100),
     ]);
     const pending = result.data.filter((item) => ["submitted", "under_review"].includes(item.status)).length;
     const published = result.data.filter((item) => ["approved", "verified"].includes(item.status)).length;
     const changes = result.data.filter((item) => item.status === "changes_requested").length;
-    const rejected = result.data.filter((item) => item.status === "rejected").length;
+    const openComplaints = complaintsResult.data.filter((item) => !["resolved", "dismissed"].includes(item.status)).length;
 
     return (
       <section className="admin-page">
         <AdminPageHeading eyebrow="Operación real" title="Resumen de moderación" description="Estado actual del registro y revisión de profesionales en Red Técnicos Chile." />
         <AdminOperationalNotice>Las postulaciones y evaluaciones de este resumen provienen de Supabase. Cada decisión administrativa exige un motivo y queda auditada.</AdminOperationalNotice>
-        {result.error || reviewsResult.error ? <p className="auth-message" role="alert">{result.error ?? reviewsResult.error}</p> : null}
+        {result.error || reviewsResult.error || complaintsResult.error ? <p className="auth-message" role="alert">{result.error ?? reviewsResult.error ?? complaintsResult.error}</p> : null}
         <div className="metric-grid admin-metrics">
           <article><span className="metric-icon"><ClipboardList aria-hidden="true" size={20} /></span><span>Por revisar</span><strong>{pending}</strong><small>Enviadas o en revisión</small></article>
           <article><span className="metric-icon"><UserRoundCheck aria-hidden="true" size={20} /></span><span>Perfiles publicados</span><strong>{published}</strong><small>Con proyección pública</small></article>
           <article><span className="metric-icon"><FileSearch aria-hidden="true" size={20} /></span><span>Cambios solicitados</span><strong>{changes}</strong><small>Esperando al profesional</small></article>
-          <article><span className="metric-icon"><MessageSquareWarning aria-hidden="true" size={20} /></span><span>Rechazadas</span><strong>{rejected}</strong><small>Con motivo auditado</small></article>
+          <article><span className="metric-icon"><MessageSquareWarning aria-hidden="true" size={20} /></span><span>Reclamos abiertos</span><strong>{openComplaints}</strong><small><Link href="/admin/reclamos">Abrir bandeja</Link></small></article>
           <article><span className="metric-icon"><MessageSquareWarning aria-hidden="true" size={20} /></span><span>Evaluaciones pendientes</span><strong>{reviewsResult.data.filter((review) => review.status === "pending").length}</strong><small><Link href="/admin/evaluaciones">Abrir moderación</Link></small></article>
         </div>
         <AdminTableCard title="Postulaciones recientes" description="Registros reales ordenados por su última actualización." action={<Link className="button button-secondary" href="/admin/postulaciones">Ver todas</Link>}>
