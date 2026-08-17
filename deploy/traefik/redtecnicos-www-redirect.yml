@@ -1,0 +1,24 @@
+http:
+  routers:
+    redtecnicos-www-http:
+      rule: Host(`www.redtecnicos.cl`)
+      entryPoints:
+        - web
+      middlewares:
+        - redtecnicos-www-to-apex
+      service: noop@internal
+    redtecnicos-www-https:
+      rule: Host(`www.redtecnicos.cl`)
+      entryPoints:
+        - websecure
+      middlewares:
+        - redtecnicos-www-to-apex
+      service: noop@internal
+      tls:
+        certResolver: letsencrypt
+  middlewares:
+    redtecnicos-www-to-apex:
+      redirectRegex:
+        regex: "^https?://www\\.redtecnicos\\.cl/(.*)"
+        replacement: "https://redtecnicos.cl/${1}"
+        permanent: true

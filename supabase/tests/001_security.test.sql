@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(77);
+select plan(81);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -84,6 +84,40 @@ select function_privs_are(
   'authenticated',
   array['EXECUTE'],
   'authenticated puede invocar la función, que valida el rol internamente'
+);
+
+select has_function(
+  'public',
+  'moderate_portfolio_item',
+  array['uuid', 'text', 'text'],
+  'Existe la moderación auditada de fotografías'
+);
+select function_privs_are(
+  'public',
+  'moderate_portfolio_item',
+  array['uuid', 'text', 'text'],
+  'anon',
+  array[]::text[],
+  'anon no puede moderar fotografías'
+);
+select function_privs_are(
+  'public',
+  'moderate_portfolio_item',
+  array['uuid', 'text', 'text'],
+  'authenticated',
+  array['EXECUTE'],
+  'authenticated invoca la función, que valida el rol internamente'
+);
+select ok(
+  exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'portfolio_items'
+      and policyname = 'portfolio_owner_delete_pending'
+      and cmd = 'DELETE'
+  ),
+  'El propietario puede retirar fotografías pendientes mediante RLS'
 );
 
 select has_column('public', 'contact_requests', 'email_verification_token_hash', 'Las solicitudes permiten verificar el correo con un token separado');

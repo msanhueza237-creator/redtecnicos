@@ -1,0 +1,71 @@
+.manager {
+  display: grid;
+  gap: 20px;
+}
+
+.upload {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+
+.file input[type="file"] {
+  min-height: 54px;
+  background: #f8fbfc;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.file input[type="file"]::file-selector-button {
+  min-height: 36px;
+  border: 1px solid #aac5d5;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--brand-action);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  margin-right: 10px;
+  padding: 7px 11px;
+}
+
+.spinner {
+  animation: gallery-spin 850ms linear infinite;
+}
+
+@keyframes gallery-spin {
+  to { transform: rotate(360deg); }
+}
+
+.itemBody {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+}
+
+.itemBody h2 {
+  font-size: 17px;
+  margin: 2px 0 0;
+}
+
+.itemBody p {
+  color: #50636e;
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.itemBody :global(.button) {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.reviewNote {
+  border-left: 3px solid #d29a35;
+  background: #fff8e8;
+  color: #684800 !important;
+  line-height: 1.45;
+  padding: 8px 9px;
+}

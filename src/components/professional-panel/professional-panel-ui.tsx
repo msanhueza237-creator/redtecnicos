@@ -1,6 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
-import { ChevronRight, FlaskConical } from "lucide-react";
+import { ChevronRight, FlaskConical, ShieldCheck } from "lucide-react";
 
 interface ProfessionalPanelHeaderProps {
   title: string;
@@ -43,6 +43,15 @@ export function PanelDemoNotice({ children }: Readonly<{ children?: React.ReactN
   );
 }
 
+export function PanelOperationalNotice({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <div className="professional-panel-notice is-success" role="note">
+      <ShieldCheck aria-hidden="true" size={19} />
+      <p>{children}</p>
+    </div>
+  );
+}
+
 export function PanelActionLink({
   href,
   children,
@@ -54,4 +63,3 @@ export function PanelActionLink({
     </Link>
   );
 }
-

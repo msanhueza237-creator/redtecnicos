@@ -2,6 +2,16 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "supabase.redtecnicos.cl",
+        port: "",
+        pathname: "/storage/v1/object/sign/gallery-images/**",
+      },
+    ],
+  },
   allowedDevOrigins: ["127.0.0.1"],
   poweredByHeader: false,
   reactStrictMode: true,
