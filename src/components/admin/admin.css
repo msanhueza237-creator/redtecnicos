@@ -327,6 +327,11 @@
 .admin-decision label > span { color: var(--ink-strong); font-size: 12px; font-weight: 800; }
 .admin-decision textarea { width: 100%; min-height: 84px; resize: vertical; border: 1px solid #b9cbd5; border-radius: 8px; background: #fff; color: var(--ink-strong); padding: 10px 11px; }
 .admin-decision label > small { color: var(--muted); font-size: 10px; }
+.admin-review-table { min-width: 1280px; }
+.admin-review-copy { min-width: 260px; }
+.admin-review-copy > strong { display: block; margin-top: 7px; }
+.admin-review-decision { width: 290px; margin-top: 0; }
+.admin-review-decision textarea { min-height: 70px; }
 .admin-demo-notice.is-operational { border-color: #bcd9e9; background: #eef8fd; color: var(--brand-action); }
 .admin-form-success,
 .admin-form-error { margin: 12px 0 0; font-size: 0.86rem; font-weight: 700; }

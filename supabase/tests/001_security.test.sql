@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(35);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -105,6 +105,10 @@ select has_function('public', 'create_public_review', array['text','integer','te
 select has_function('public', 'update_owned_contact_request_status', array['uuid','public.contact_request_state'], 'Existe la actualización de estado del propietario');
 select function_privs_are('public', 'update_owned_contact_request_status', array['uuid','public.contact_request_state'], 'anon', array[]::text[], 'anon no puede actualizar el historial profesional');
 select function_privs_are('public', 'update_owned_contact_request_status', array['uuid','public.contact_request_state'], 'authenticated', array['EXECUTE'], 'el profesional autenticado invoca la transición validada');
+
+select has_function('public', 'moderate_review', array['uuid','text','text'], 'Existe la moderación auditada de evaluaciones');
+select function_privs_are('public', 'moderate_review', array['uuid','text','text'], 'anon', array[]::text[], 'anon no puede moderar evaluaciones');
+select function_privs_are('public', 'moderate_review', array['uuid','text','text'], 'authenticated', array['EXECUTE'], 'authenticated invoca la función, que valida el rol internamente');
 
 select ok(
   not has_table_privilege('anon', 'public.contact_requests', 'INSERT'),
