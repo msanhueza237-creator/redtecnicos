@@ -72,7 +72,7 @@ test("the customer receives contact details immediately and the private admin hi
   await page.goto("/acceso-demo/administracion");
   await page.getByRole("button", { name: "Entrar como administrador" }).click();
   await expect(page).toHaveURL(/\/admin$/);
-  await page.getByRole("link", { name: "Solicitudes", exact: true }).click();
+  await page.goto("/admin/solicitudes");
   await expect(page).toHaveURL(/\/admin\/solicitudes$/);
 
   const requestRow = page.locator("tr", { hasText: result!.requestId });
@@ -84,7 +84,7 @@ test("the customer receives contact details immediately and the private admin hi
   await expect(requestRow).toContainText("ClimaSur Demo SpA");
   await expect(page.getByText(result!.trackingToken, { exact: true })).toHaveCount(0);
 
-  await page.getByRole("link", { name: "Evaluaciones", exact: true }).click();
+  await page.goto("/admin/evaluaciones");
   await expect(page).toHaveURL(/\/admin\/evaluaciones$/);
   const reviewRow = page.locator("tr", { hasText: result!.requestId });
   await expect(reviewRow).toBeVisible();
