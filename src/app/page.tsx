@@ -17,6 +17,8 @@ import {
 import { HeroSearch } from "@/components/hero-search";
 import { ProfessionalCard } from "@/components/professional-card";
 import type { ProfessionalCategory } from "@/domain/directory";
+import { calculateDirectoryMetrics } from "@/domain/directory-metrics";
+import { listPublicReviews } from "@/lib/directory/public-reviews";
 import { listDirectoryProfessionals } from "@/lib/directory/repository";
 import { isSupabaseMode } from "@/lib/supabase/config";
 
@@ -65,23 +67,26 @@ const categories: Array<{
   },
 ];
 
-const testimonials = [
-  { quote: "Pude comparar cobertura y experiencia antes de solicitar el contacto. El proceso fue claro y rápido.", author: "Cliente residencial ficticio", place: "Puerto Montt" },
-  { quote: "La ficha permite explicar mejor mis servicios y mostrar trabajos sin depender solo del boca a boca.", author: "Técnico independiente ficticio", place: "Concepción" },
-  { quote: "Encontramos una empresa con experiencia declarada en cámaras de frío y dejamos registrada la solicitud.", author: "Comercio gastronómico ficticio", place: "Valparaíso" },
-] as const;
+const reviewDateFormatter = new Intl.DateTimeFormat("es-CL", {
+  dateStyle: "medium",
+  timeZone: "America/Santiago",
+});
 
 export default async function HomePage() {
-  const professionals = await listDirectoryProfessionals();
+  const [professionals, publicReviews] = await Promise.all([
+    listDirectoryProfessionals(),
+    listPublicReviews(3),
+  ]);
   const featuredProfessionals = [...professionals]
     .sort((left, right) => right.score - left.score || right.rating - left.rating)
     .slice(0, 6);
-  const communeCount = new Set(professionals.flatMap((professional) => professional.communes)).size;
-  const ratedProfiles = professionals.filter((professional) => professional.reviewCount > 0);
-  const averageRating = ratedProfiles.length > 0
-    ? ratedProfiles.reduce((total, professional) => total + professional.rating, 0) / ratedProfiles.length
-    : 0;
+  const metrics = calculateDirectoryMetrics(professionals);
   const isLive = isSupabaseMode();
+  const reviewGridClass = publicReviews.length === 1
+    ? "testimonial-grid is-single"
+    : publicReviews.length === 2
+      ? "testimonial-grid is-pair"
+      : "testimonial-grid";
 
   return (
     <>
@@ -111,11 +116,11 @@ export default async function HomePage() {
             <div className="landing-floating-card is-contact"><MessageCircleMore size={20} aria-hidden="true" /><span><strong>Contacto inmediato</strong><small>Después de registrar tu solicitud</small></span></div>
           </div>
         </div>
-        <div className="container landing-metrics" aria-label="Indicadores de demostración calculados">
-          <div><strong>{professionals.length}</strong><span>{isLive ? "Perfiles publicados" : "Perfiles ficticios"}</span></div>
-          <div><strong>{communeCount}</strong><span>Comunas cubiertas</span></div>
-          <div><strong>3</strong><span>Categorías técnicas</span></div>
-          <div><strong>{averageRating > 0 ? averageRating.toFixed(1) : "—"}</strong><span>{isLive ? "Calificación promedio" : "Calificación demo"}</span></div>
+        <div className="container landing-metrics" aria-label={isLive ? "Indicadores reales del directorio" : "Indicadores de demostración calculados"}>
+          <div><strong>{metrics.profileCount}</strong><span>{isLive ? "Perfiles publicados" : "Perfiles ficticios"}</span></div>
+          <div><strong>{metrics.communeCount}</strong><span>Comunas cubiertas</span></div>
+          <div><strong>{metrics.publishedReviewCount}</strong><span>{isLive ? "Evaluaciones publicadas" : "Evaluaciones demo"}</span></div>
+          <div><strong>{metrics.averageRating > 0 ? metrics.averageRating.toFixed(1) : "—"}</strong><span>{isLive ? "Calificación promedio" : "Calificación demo"}</span></div>
         </div>
       </section>
 
@@ -171,10 +176,28 @@ export default async function HomePage() {
 
       <section className="section section-blue" aria-labelledby="stories-title">
         <div className="container">
-          <div className="section-header landing-section-header is-light"><div><span className="eyebrow">Opiniones de demostración</span><h2 id="stories-title">Experiencias que ayudan a decidir</h2><p>En producción, solo se publicarán evaluaciones asociadas a solicitudes completadas y correos verificados.</p></div></div>
-          <div className="testimonial-grid">
-            {testimonials.map((testimonial) => <article key={testimonial.author}><span aria-label="Cinco estrellas">★★★★★</span><blockquote>“{testimonial.quote}”</blockquote><strong>{testimonial.author}</strong><small>{testimonial.place} · Dato ficticio</small></article>)}
-          </div>
+          <div className="section-header landing-section-header is-light"><div><span className="eyebrow">{isLive ? "Opiniones verificadas" : "Opiniones de demostración"}</span><h2 id="stories-title">Experiencias de clientes verificados</h2><p>{isLive ? "Solo publicamos evaluaciones asociadas a solicitudes completadas, correos verificados y una revisión administrativa." : "Ejemplos ficticios para revisar cómo se presentarán las evaluaciones verificadas."}</p></div></div>
+          {publicReviews.length > 0 ? (
+            <div className={reviewGridClass}>
+              {publicReviews.map((review) => {
+                const profileHref = (review.professionalKind === "company" ? `/empresas/${review.profileSlug}` : `/tecnicos/${review.profileSlug}`) as Route;
+                return (
+                  <article key={review.id}>
+                    <span className="testimonial-stars" aria-label={`${review.rating} de 5 estrellas`}>{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
+                    <blockquote>“{review.comment}”</blockquote>
+                    <div className="testimonial-identity"><BadgeCheck aria-hidden="true" size={18} /><div><strong>{review.isDemo ? "Cliente ficticio" : "Cliente verificado"}</strong><small>{review.commune} · {review.service}</small></div></div>
+                    <div className="testimonial-card-footer">
+                      <time dateTime={review.publishedAt}>{review.isDemo ? "Ejemplo de demostración" : reviewDateFormatter.format(new Date(review.publishedAt))}</time>
+                      <Link href={profileHref}>Ver perfil de {review.professionalName}</Link>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="testimonial-empty"><BadgeCheck aria-hidden="true" size={28} /><h3>Las primeras experiencias verificadas aparecerán aquí</h3><p>No completaremos este espacio con testimonios ficticios. Cada opinión deberá provenir de una solicitud completada y ser aprobada por administración.</p></div>
+          )}
+          <div className="testimonial-actions"><Link className="button button-secondary" href="/tecnicos?sort=rating">Ver técnicos mejor evaluados <ArrowRight aria-hidden="true" size={16} /></Link></div>
         </div>
       </section>
 

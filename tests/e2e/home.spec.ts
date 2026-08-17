@@ -8,15 +8,19 @@ test("landing communicates the directory model and offers working navigation", a
   await expect(page.getByRole("link", { name: /Comercial Supermercados/i })).toHaveAttribute("href", "/tecnicos?category=commercial");
   await expect(page.getByRole("link", { name: /Residencial Climatización/i })).toHaveAttribute("href", "/tecnicos?category=residential");
   await expect(page.getByRole("link", { name: "Ver directorio completo" })).toHaveAttribute("href", "/tecnicos");
+  await expect(page.getByRole("heading", { name: "Experiencias de clientes verificados" })).toBeVisible();
+  await expect(page.getByText("Opiniones de demostración")).toBeVisible();
+  await expect(page.getByText("Cliente ficticio").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ver técnicos mejor evaluados" })).toHaveAttribute("href", "/tecnicos?sort=rating");
   await expect(page.getByRole("status")).toContainText("Todos los perfiles y datos mostrados son ficticios");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
 });
 
 test("landing metrics are calculated from fixtures and not zero", async ({ page }) => {
   await page.goto("/");
   const metrics = page.locator(".landing-metrics");
-  await expect(metrics).toContainText("10");
-  await expect(metrics).toContainText("3");
-  await expect(metrics).not.toContainText(/^0$/);
+  await expect(metrics.locator("strong")).toHaveText(["10", "29", "149", "4.8"]);
+  await expect(metrics).toContainText("Evaluaciones demo");
 });
 
 test("landing does not use prohibited guarantee language", async ({ page }) => {
