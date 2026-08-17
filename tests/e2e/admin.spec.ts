@@ -106,6 +106,16 @@ test("all administrative sections are real routes with an active navigation stat
   }
 });
 
+test("content shows the controlled publishing workflow in the local environment", async ({ page }) => {
+  await enterAs(page, "administrador");
+  await page.goto("/admin/contenido");
+
+  await expect(page.getByRole("heading", { level: 1, name: "Contenido público" })).toBeVisible();
+  await expect(page.getByText("cada cambio se guarda como borrador", { exact: false })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aviso del directorio" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Llamado para profesionales" })).toBeVisible();
+});
+
 test("signing out returns to the non-public administrative entry and revokes access", async ({ page }) => {
   await enterAs(page, "administrador");
   await page.getByRole("button", { name: "Cerrar sesión" }).click();

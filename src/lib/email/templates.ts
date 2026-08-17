@@ -161,6 +161,68 @@ export function professionalRequestEmailTemplate(input: ProfessionalRequestEmail
   };
 }
 
+export interface AdministratorRegistrationEmailInput {
+  applicantName: string;
+  applicantEmail: string;
+  displayName: string;
+  professionalKind: string;
+  category: string;
+  region: string;
+  commune: string;
+  adminUrl: string;
+}
+
+export function administratorRegistrationEmailTemplate(input: AdministratorRegistrationEmailInput): EmailTemplate {
+  return {
+    subject: `Nueva postulación · ${input.displayName}`,
+    text: `Nueva postulación en Red Técnicos Chile\n\nNombre visible: ${input.displayName}\nResponsable: ${input.applicantName}\nCorreo: ${input.applicantEmail}\nTipo: ${input.professionalKind}\nCategoría: ${input.category}\nUbicación: ${input.commune}, ${input.region}\nEstado: En revisión\n\nRevisar en administración: ${input.adminUrl}`,
+    html: emailLayout({
+      preheader: `${input.displayName} envió una nueva postulación.`,
+      eyebrow: "Nueva postulación",
+      title: "Hay un nuevo perfil por revisar",
+      intro: "Se completó el registro inicial y la postulación ya está disponible en la bandeja administrativa.",
+      bodyHtml: `${detailsTable([
+        { label: "Nombre visible", value: input.displayName },
+        { label: "Responsable", value: input.applicantName },
+        { label: "Correo", value: input.applicantEmail },
+        { label: "Tipo", value: input.professionalKind },
+        { label: "Categoría", value: input.category },
+        { label: "Ubicación", value: `${input.commune}, ${input.region}` },
+        { label: "Estado", value: "En revisión" },
+      ])}<p style="margin:18px 0 0;color:#50636e;font-size:13px;line-height:20px">Los documentos, antecedentes privados y decisiones de moderación solo se consultan dentro de la administración autenticada.</p>`,
+      action: { label: "Revisar postulación", url: input.adminUrl },
+      footnote: "Aviso administrativo generado automáticamente por Red Técnicos Chile.",
+    }),
+  };
+}
+
+export interface ApplicantRegistrationEmailInput {
+  applicantName: string;
+  displayName: string;
+  professionalKind: string;
+  loginUrl: string;
+}
+
+export function applicantRegistrationEmailTemplate(input: ApplicantRegistrationEmailInput): EmailTemplate {
+  return {
+    subject: "Recibimos tu postulación · Red Técnicos Chile",
+    text: `Hola ${input.applicantName},\n\nRecibimos la postulación de ${input.displayName} como ${input.professionalKind}. Su estado inicial es En revisión.\n\nTambién recibirás un correo separado para confirmar tu dirección. Después de confirmarla podrás ingresar a tu panel: ${input.loginUrl}\n\nTu perfil no se publicará hasta completar la revisión administrativa.`,
+    html: emailLayout({
+      preheader: "Tu perfil fue recibido y quedó en revisión administrativa.",
+      eyebrow: "Postulación recibida",
+      title: "Tu perfil quedó en revisión",
+      intro: `Hola ${input.applicantName}. Recibimos correctamente la información inicial de ${input.displayName}.`,
+      bodyHtml: `${detailsTable([
+        { label: "Tipo de perfil", value: input.professionalKind },
+        { label: "Estado", value: "En revisión" },
+        { label: "Siguiente paso", value: "Confirmar tu correo electrónico" },
+      ])}<div style="margin-top:18px;padding:16px;border-left:4px solid #c8ff55;background:#f5fbe8;color:#465b31;font-size:13px;line-height:20px"><strong style="display:block;margin-bottom:5px">¿Qué ocurrirá ahora?</strong>Recibirás un correo separado para confirmar tu dirección. La administración revisará la postulación y el perfil no será público hasta su aprobación.</div>`,
+      action: { label: "Ir al ingreso profesional", url: input.loginUrl },
+      footnote: "Nunca solicitaremos pagos ni documentos respondiendo directamente a este correo.",
+    }),
+  };
+}
+
 export interface ReviewInvitationEmailInput {
   customerName: string;
   professionalName: string;

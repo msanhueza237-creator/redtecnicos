@@ -4,6 +4,8 @@ test("landing communicates the directory model and offers working navigation", a
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: /El técnico en refrigeración correcto/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Tres áreas, una misma red profesional" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Decide con información antes de contratar" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Explorar el directorio" })).toHaveAttribute("href", "/tecnicos");
   await expect(page.getByRole("link", { name: /Industrial Plantas/i })).toHaveAttribute("href", "/tecnicos?category=industrial");
   await expect(page.getByRole("link", { name: /Comercial Supermercados/i })).toHaveAttribute("href", "/tecnicos?category=commercial");
   await expect(page.getByRole("link", { name: /Residencial Climatización/i })).toHaveAttribute("href", "/tecnicos?category=residential");

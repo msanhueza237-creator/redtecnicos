@@ -319,7 +319,7 @@ export function RegistrationWizard({
             <article><span>Cobertura</span><strong>{draft.commune || "Sin comuna"}</strong><small>{regionNameFromCode(draft.regionCode)}</small></article>
             <article><span>Servicios</span><strong>{draft.services.length} seleccionados</strong><small>{draft.services.slice(0, 2).join(" · ")}</small></article>
           </div>
-          <div className="wizard-review-notice"><ShieldCheck aria-hidden="true" size={20} /><div><strong>La publicación no es automática</strong><p>Crearemos tu cuenta y la administración revisará esta información. El teléfono y correo solo se revelarán después de que un cliente registre una solicitud.</p></div></div>
+          <div className="wizard-review-notice"><ShieldCheck aria-hidden="true" size={20} /><div><strong>La publicación no es automática</strong><p>Crearemos tu cuenta, recibirás una confirmación de postulación y avisaremos a la administración para que revise la información. El teléfono y correo solo se revelarán después de que un cliente registre una solicitud.</p></div></div>
           <label className="auth-consent">
             <input name="terms" required type="checkbox" />
             <span>Acepto los <Link href="/terminos-tecnicos">términos para profesionales</Link> y el tratamiento de datos descrito en <Link href="/privacidad">Privacidad</Link>.</span>

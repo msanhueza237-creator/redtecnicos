@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(58);
+select plan(74);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -201,6 +201,41 @@ select function_privs_are(
   'authenticated', array['EXECUTE'],
   'authenticated invoca la función, que valida admin o superadmin internamente'
 );
+
+select has_table('public', 'site_content_entries', 'Existe el contenido público versionado');
+select has_table('public', 'site_content_versions', 'Existe el historial de versiones de contenido');
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.site_content_entries'::regclass),
+  'RLS está activo en el contenido administrable'
+);
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.site_content_versions'::regclass),
+  'RLS está activo en el historial de contenido'
+);
+select has_function('public', 'get_public_site_content', array[]::text[], 'Existe la proyección pública segura del contenido');
+select function_privs_are('public', 'get_public_site_content', array[]::text[], 'anon', array['EXECUTE'], 'anon puede leer solo versiones publicadas');
+select function_privs_are('public', 'get_public_site_content', array[]::text[], 'authenticated', array['EXECUTE'], 'authenticated accede a la misma proyección pública');
+select has_function('public', 'list_admin_site_content', array[]::text[], 'Existe la consulta administrativa de contenido');
+select function_privs_are('public', 'list_admin_site_content', array[]::text[], 'anon', array[]::text[], 'anon no puede leer borradores');
+select function_privs_are('public', 'list_admin_site_content', array[]::text[], 'authenticated', array['EXECUTE'], 'authenticated invoca la consulta que valida el rol');
+select has_function(
+  'public', 'save_site_content_draft',
+  array['text','integer','boolean','text','text','text','text','text','text','text','text'],
+  'Existe el guardado auditado de borradores'
+);
+select function_privs_are(
+  'public', 'save_site_content_draft',
+  array['text','integer','boolean','text','text','text','text','text','text','text','text'],
+  'anon', array[]::text[], 'anon no puede guardar borradores'
+);
+select function_privs_are(
+  'public', 'save_site_content_draft',
+  array['text','integer','boolean','text','text','text','text','text','text','text','text'],
+  'authenticated', array['EXECUTE'], 'authenticated invoca el guardado que valida admin'
+);
+select has_function('public', 'publish_site_content', array['text','integer','text'], 'Existe la publicación auditada de contenido');
+select function_privs_are('public', 'publish_site_content', array['text','integer','text'], 'anon', array[]::text[], 'anon no puede publicar contenido');
+select function_privs_are('public', 'publish_site_content', array['text','integer','text'], 'authenticated', array['EXECUTE'], 'authenticated invoca la publicación que valida admin');
 
 select * from finish();
 rollback;

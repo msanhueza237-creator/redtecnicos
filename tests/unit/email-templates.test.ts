@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  administratorRegistrationEmailTemplate,
+  applicantRegistrationEmailTemplate,
   customerContactEmailTemplate,
   professionalRequestEmailTemplate,
   reviewInvitationEmailTemplate,
@@ -62,5 +64,38 @@ describe("plantillas de correo transaccional", () => {
     expect(template.html).toContain("Calificar el servicio");
     expect(template.html).toContain("token-opaco");
     expect(template.text).toContain("una evaluación por solicitud completada");
+  });
+
+  it("avisa al administrador sin incluir documentos privados", () => {
+    const template = administratorRegistrationEmailTemplate({
+      applicantName: "Responsable <Ejemplo>",
+      applicantEmail: "postulante@example.invalid",
+      displayName: "Frío Sur Ejemplo",
+      professionalKind: "Empresa",
+      category: "Refrigeración comercial",
+      region: "Los Lagos",
+      commune: "Puerto Montt",
+      adminUrl: "https://redtecnicos.cl/admin/postulaciones",
+    });
+
+    expect(template.subject).toContain("Frío Sur Ejemplo");
+    expect(template.html).toContain("Revisar postulación");
+    expect(template.html).toContain("Responsable &lt;Ejemplo&gt;");
+    expect(template.html).not.toContain("documento adjunto");
+    expect(template.text).toContain("Estado: En revisión");
+  });
+
+  it("confirma al postulante que su perfil está en revisión", () => {
+    const template = applicantRegistrationEmailTemplate({
+      applicantName: "Técnico Ejemplo",
+      displayName: "Servicio Técnico Ejemplo",
+      professionalKind: "Técnico independiente",
+      loginUrl: "https://redtecnicos.cl/ingresar",
+    });
+
+    expect(template.subject).toContain("Recibimos tu postulación");
+    expect(template.html).toContain("Tu perfil quedó en revisión");
+    expect(template.text).toContain("correo separado para confirmar");
+    expect(template.text).toContain("no se publicará");
   });
 });

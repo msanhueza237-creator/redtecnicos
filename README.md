@@ -84,6 +84,7 @@ SMTP_USER=
 SMTP_PASS=
 SMTP_FROM_EMAIL=
 SMTP_FROM_NAME=Red Técnicos Chile
+ADMIN_NOTIFICATION_EMAIL=
 ```
 
 Las migraciones están en `supabase/migrations`. Los scripts son dry-run por
@@ -120,6 +121,9 @@ El correo transaccional utiliza SMTP desde el servidor. Al crear una solicitud
 se intenta enviar un mensaje de confirmación al cliente y una notificación al
 profesional. Un fallo SMTP no revierte la solicitud ya registrada y su estado
 se informa de forma segura en la respuesta y en el módulo administrativo.
+Al crear una nueva cuenta profesional se envía además una confirmación de
+“En revisión” al postulante y un aviso al correo privado configurado en
+`ADMIN_NOTIFICATION_EMAIL`, con acceso directo a `/admin/postulaciones`.
 
 ## Accesos privados de demostración
 

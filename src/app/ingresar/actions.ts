@@ -8,7 +8,11 @@ import {
   roleLandingPath,
 } from "@/lib/auth/roles";
 import type { AuthActionState } from "@/lib/auth/action-state";
-import { professionalRegistrationSchema } from "@/domain/professional-registration";
+import {
+  professionalRegistrationSchema,
+  regionNameFromCode,
+} from "@/domain/professional-registration";
+import { sendProfessionalRegistrationEmails } from "@/lib/email/smtp";
 import { isSupabaseAuthMode } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -148,6 +152,29 @@ export async function registerProfessionalAction(
           ? "Se alcanzó el límite de intentos. Espera unos minutos."
           : "No fue posible crear la cuenta. Si el correo ya existe, utiliza Ingresar.",
     };
+  }
+
+  const isNewRegistration = Boolean(data.user && (data.user.identities?.length ?? 0) > 0);
+  if (isNewRegistration) {
+    const categoryLabels = {
+      industrial: "Refrigeración industrial",
+      commercial: "Refrigeración comercial",
+      residential: "Climatización residencial",
+    } as const;
+    try {
+      await sendProfessionalRegistrationEmails({
+        applicantName: parsed.data.fullName,
+        applicantEmail: parsed.data.email,
+        displayName: parsed.data.displayName,
+        professionalKind: parsed.data.kind === "company" ? "Empresa" : "Técnico independiente",
+        category: categoryLabels[parsed.data.category],
+        region: regionNameFromCode(parsed.data.regionCode),
+        commune: parsed.data.commune,
+      });
+    } catch {
+      // La cuenta y la postulación ya existen; un fallo SMTP nunca debe dejarlas
+      // en un estado engañoso ni provocar que el usuario repita el registro.
+    }
   }
 
   if (data.session) redirect("/panel" as Route);

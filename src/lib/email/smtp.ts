@@ -3,6 +3,8 @@ import "server-only";
 import nodemailer from "nodemailer";
 import type { ContactEmailContext } from "@/lib/contact-requests/repository";
 import {
+  administratorRegistrationEmailTemplate,
+  applicantRegistrationEmailTemplate,
   customerContactEmailTemplate,
   professionalRequestEmailTemplate,
   reviewInvitationEmailTemplate,
@@ -36,6 +38,27 @@ export interface ReviewInvitationContext {
   trackingToken: string;
 }
 
+export interface ProfessionalRegistrationEmailContext {
+  applicantName: string;
+  applicantEmail: string;
+  displayName: string;
+  professionalKind: string;
+  category: string;
+  region: string;
+  commune: string;
+}
+
+export interface ProfessionalRegistrationMailDeliveryResult {
+  configured: boolean;
+  administrator: "sent" | "failed" | "skipped";
+  applicant: "sent" | "failed" | "skipped";
+}
+
+function administratorNotificationEmail(): string | null {
+  const email = process.env.ADMIN_NOTIFICATION_EMAIL?.trim().toLowerCase();
+  return email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(email) ? email : null;
+}
+
 function smtpConfig(): SmtpConfig | null {
   const host = process.env.SMTP_HOST?.trim();
   const port = Number(process.env.SMTP_PORT ?? "587");
@@ -57,6 +80,10 @@ function smtpConfig(): SmtpConfig | null {
 
 export function smtpConfigurationStatus(): "configured" | "missing" {
   return smtpConfig() ? "configured" : "missing";
+}
+
+export function registrationNotificationStatus(): "configured" | "missing" {
+  return smtpConfig() && administratorNotificationEmail() ? "configured" : "missing";
 }
 
 function transporter() {
@@ -144,6 +171,56 @@ export async function sendContactRequestEmails(context: ContactEmailContext): Pr
     customer: customer.status === "fulfilled" ? "sent" : "failed",
     professional: professional.status === "fulfilled" ? "sent" : "failed",
   };
+}
+
+export async function sendProfessionalRegistrationEmails(
+  context: ProfessionalRegistrationEmailContext,
+): Promise<ProfessionalRegistrationMailDeliveryResult> {
+  if (!smtpConfig()) return { configured: false, administrator: "skipped", applicant: "skipped" };
+
+  const administratorEmail = administratorNotificationEmail();
+  const { client, config } = transporter();
+  const from = { name: config.fromName, address: config.fromEmail };
+  const applicantTemplate = applicantRegistrationEmailTemplate({
+    applicantName: context.applicantName,
+    displayName: context.displayName,
+    professionalKind: context.professionalKind,
+    loginUrl: publicSiteUrl("/ingresar"),
+  });
+  const administratorTemplate = administratorEmail ? administratorRegistrationEmailTemplate({
+    ...context,
+    adminUrl: publicSiteUrl("/admin/postulaciones"),
+  }) : null;
+
+  const applicantPromise = client.sendMail({
+    from,
+    to: context.applicantEmail,
+    ...applicantTemplate,
+  });
+  const administratorPromise = administratorEmail && administratorTemplate
+    ? client.sendMail({
+        from,
+        to: administratorEmail,
+        replyTo: context.applicantEmail,
+        ...administratorTemplate,
+      })
+    : null;
+
+  try {
+    const [applicant, administrator] = await Promise.allSettled([
+      applicantPromise,
+      administratorPromise ?? Promise.resolve(null),
+    ]);
+    return {
+      configured: true,
+      applicant: applicant.status === "fulfilled" ? "sent" : "failed",
+      administrator: administratorPromise
+        ? administrator.status === "fulfilled" ? "sent" : "failed"
+        : "skipped",
+    };
+  } finally {
+    client.close();
+  }
 }
 
 export async function sendReviewInvitationEmail(context: ReviewInvitationContext): Promise<SingleMailDeliveryResult> {

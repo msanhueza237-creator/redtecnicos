@@ -4930,6 +4930,35 @@ fieldset.professional-panel-field {
 .landing-metrics strong { color: var(--brand-action); font-size: 24px; }
 .landing-metrics span { color: var(--muted); font-size: 11px; font-weight: 750; text-transform: uppercase; }
 
+.managed-directory-notice {
+  border-block: 1px solid #cfe1eb;
+  background: linear-gradient(105deg, #f3f9fc, #fbfff3);
+  padding: 25px 0;
+}
+
+.managed-directory-notice-inner {
+  display: grid;
+  align-items: center;
+  gap: 18px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.managed-directory-notice-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--brand-action);
+  color: #fff;
+}
+
+.managed-directory-notice .eyebrow { font-size: 10px; }
+.managed-directory-notice h2 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); margin: 6px 0 4px; }
+.managed-directory-notice p { max-width: 780px; color: #536872; font-size: 13px; line-height: 1.6; margin: 0; }
+.managed-directory-notice-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.managed-directory-notice-actions .button { min-height: 42px; white-space: nowrap; }
+
 .landing-section-header { justify-content: center; text-align: center; }
 .landing-section-header > div { display: grid; justify-items: center; }
 .category-showcase { display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -5042,6 +5071,9 @@ fieldset.professional-panel-field {
   .landing-metrics { width: 100%; border-inline: 0; border-radius: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .landing-metrics div { border-top: 1px solid var(--border); padding: 15px 16px; }
   .landing-metrics div:nth-child(odd) { border-left: 0; }
+  .managed-directory-notice-inner { align-items: start; grid-template-columns: auto minmax(0, 1fr); }
+  .managed-directory-notice-actions { grid-column: 1 / -1; justify-content: stretch; }
+  .managed-directory-notice-actions .button { flex: 1 1 180px; }
   .category-showcase,
   .audience-process-grid,
   .testimonial-grid,
@@ -5060,6 +5092,8 @@ fieldset.professional-panel-field {
   .landing-floating-card small { display: none; }
   .landing-metrics strong { font-size: 20px; }
   .landing-metrics span { font-size: 9px; }
+  .managed-directory-notice-icon { width: 42px; height: 42px; }
+  .managed-directory-notice-actions { display: grid; }
   .card-actions { grid-template-columns: 1fr; }
 }
 

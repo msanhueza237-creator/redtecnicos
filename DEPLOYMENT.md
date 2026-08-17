@@ -55,6 +55,10 @@ El inventario definitivo vive en `.env.example`. Se esperan, por categoría:
 - Carga: URL/estado ClamAV, tamaños y tipos permitidos.
 - Retención y flags: periodos y `NEXT_PUBLIC_ENABLE_DEMO_PROFILES`.
 
+`ADMIN_NOTIFICATION_EMAIL` define el buzón privado que recibe cada nueva
+postulación. El mismo evento envía al postulante una confirmación de estado; el
+correo de confirmación de Supabase Auth se mantiene como mensaje separado.
+
 Los secretos se cargan desde Dokploy; no se hornean como `ARG`, no se imprimen
 en logs y no se versionan.
 

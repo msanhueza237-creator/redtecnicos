@@ -20,6 +20,7 @@ import type { ProfessionalCategory } from "@/domain/directory";
 import { calculateDirectoryMetrics } from "@/domain/directory-metrics";
 import { listPublicReviews } from "@/lib/directory/public-reviews";
 import { listDirectoryProfessionals } from "@/lib/directory/repository";
+import { getPublicSiteContentMap } from "@/lib/content/repository";
 import { isSupabaseMode } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
@@ -73,15 +74,18 @@ const reviewDateFormatter = new Intl.DateTimeFormat("es-CL", {
 });
 
 export default async function HomePage() {
-  const [professionals, publicReviews] = await Promise.all([
+  const [professionals, publicReviews, siteContent] = await Promise.all([
     listDirectoryProfessionals(),
     listPublicReviews(3),
+    getPublicSiteContentMap(),
   ]);
   const featuredProfessionals = [...professionals]
     .sort((left, right) => right.score - left.score || right.rating - left.rating)
     .slice(0, 6);
   const metrics = calculateDirectoryMetrics(professionals);
   const isLive = isSupabaseMode();
+  const directoryNotice = siteContent.home_directory_notice;
+  const professionalCta = siteContent.home_professional_cta;
   const reviewGridClass = publicReviews.length === 1
     ? "testimonial-grid is-single"
     : publicReviews.length === 2
@@ -123,6 +127,23 @@ export default async function HomePage() {
           <div><strong>{metrics.averageRating > 0 ? metrics.averageRating.toFixed(1) : "—"}</strong><span>{isLive ? "Calificación promedio" : "Calificación demo"}</span></div>
         </div>
       </section>
+
+      {directoryNotice.enabled ? (
+        <section className="managed-directory-notice" aria-labelledby="managed-directory-notice-title">
+          <div className="container managed-directory-notice-inner">
+            <span className="managed-directory-notice-icon"><ShieldCheck aria-hidden="true" size={25} /></span>
+            <div>
+              <span className="eyebrow">{directoryNotice.eyebrow}</span>
+              <h2 id="managed-directory-notice-title">{directoryNotice.title}</h2>
+              <p>{directoryNotice.body}</p>
+            </div>
+            <div className="managed-directory-notice-actions">
+              <Link className="button button-primary" href={directoryNotice.primaryCtaHref as Route}>{directoryNotice.primaryCtaLabel}</Link>
+              {directoryNotice.secondaryCtaLabel && directoryNotice.secondaryCtaHref ? <Link className="button button-secondary" href={directoryNotice.secondaryCtaHref as Route}>{directoryNotice.secondaryCtaLabel}</Link> : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="section" aria-labelledby="categories-title">
         <div className="container">
@@ -203,10 +224,10 @@ export default async function HomePage() {
 
       <section className="section">
         <div className="container">
-          <div className="professional-cta landing-final-cta">
-            <div><span className="eyebrow"><ClipboardCheck size={17} aria-hidden="true" /> Para técnicos y empresas</span><h2>Haz visible tu experiencia en refrigeración y climatización</h2><p>Publica servicios, cobertura, formación revisada y trabajos realizados. Tú mantienes el control de tu información.</p></div>
-            <div className="cta-actions"><Link className="button button-lime" href="/registro-tecnico">Registrarme como técnico</Link><Link className="button button-secondary" href="/registro-empresa">Registrar una empresa</Link></div>
-          </div>
+          {professionalCta.enabled ? <div className="professional-cta landing-final-cta">
+            <div><span className="eyebrow"><ClipboardCheck size={17} aria-hidden="true" /> {professionalCta.eyebrow}</span><h2>{professionalCta.title}</h2><p>{professionalCta.body}</p></div>
+            <div className="cta-actions"><Link className="button button-lime" href={professionalCta.primaryCtaHref as Route}>{professionalCta.primaryCtaLabel}</Link>{professionalCta.secondaryCtaLabel && professionalCta.secondaryCtaHref ? <Link className="button button-secondary" href={professionalCta.secondaryCtaHref as Route}>{professionalCta.secondaryCtaLabel}</Link> : null}</div>
+          </div> : null}
           <div className="legal-note landing-legal-note"><Info size={22} aria-hidden="true" /><p><strong>Red Técnicos Chile funciona como directorio informativo y canal de contacto.</strong> La selección, presupuesto, pago, ejecución y garantía se acuerdan directamente entre cliente y profesional.</p></div>
         </div>
       </section>
