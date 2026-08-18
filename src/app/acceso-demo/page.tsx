@@ -7,6 +7,7 @@ import { getDemoSession, isDemoAuthEnabled } from "@/lib/auth/demo-session";
 export const metadata: Metadata = {
   title: "Acceso técnico de demostración",
   description: "Acceso local al panel profesional con datos completamente ficticios.",
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";

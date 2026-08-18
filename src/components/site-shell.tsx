@@ -11,6 +11,15 @@ const navigation: Array<{ href: Route; label: string }> = [
   { href: "/registro-tecnico", label: "Soy técnico" },
 ];
 
+const discoveryLinks: Array<{ href: Route; label: string }> = [
+  { href: "/servicios/instalacion-aire-acondicionado" as Route, label: "Instalación de aire acondicionado" },
+  { href: "/servicios/mantencion-aire-acondicionado" as Route, label: "Mantención de aire acondicionado" },
+  { href: "/servicios/refrigeracion-comercial" as Route, label: "Refrigeración comercial" },
+  { href: "/servicios/camaras-de-frio" as Route, label: "Cámaras de frío" },
+  { href: "/guias/como-elegir-tecnico-refrigeracion-climatizacion" as Route, label: "Cómo elegir un técnico" },
+  { href: "/guias/como-redactar-solicitud-servicio-tecnico" as Route, label: "Cómo preparar una solicitud" },
+];
+
 function privateAreaLink(
   role: UserRole | null,
   authSource: AuthDataSource,
@@ -132,6 +141,14 @@ export function SiteFooter({
             </div>
           </div>
         </div>
+        <nav className="footer-discovery-links" aria-label="Servicios y guías útiles">
+          <span>Servicios y guías:</span>
+          <div>
+            {discoveryLinks.map((item) => (
+              <Link href={item.href} key={item.href}>{item.label}</Link>
+            ))}
+          </div>
+        </nav>
         <div className="footer-bottom">
           <span>© 2026 Red Técnicos Chile. Prototipo local para revisión.</span>
           <span>No se reciben pagos ni se garantiza la ejecución de servicios.</span>

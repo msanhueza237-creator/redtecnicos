@@ -15,12 +15,14 @@ import {
   UserRoundSearch,
 } from "lucide-react";
 import { HeroSearch } from "@/components/hero-search";
+import { JsonLd } from "@/components/json-ld";
 import { ProfessionalCard } from "@/components/professional-card";
 import type { ProfessionalCategory } from "@/domain/directory";
 import { calculateDirectoryMetrics } from "@/domain/directory-metrics";
 import { listPublicReviews } from "@/lib/directory/public-reviews";
 import { listDirectoryProfessionals } from "@/lib/directory/repository";
 import { getPublicSiteContentMap } from "@/lib/content/repository";
+import { publicSiteUrl } from "@/lib/site-url";
 import { isSupabaseMode } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +30,12 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Técnicos de refrigeración y climatización en Chile",
   description: "Busca y compara perfiles de técnicos y empresas de refrigeración industrial, comercial y climatización residencial en Chile.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Técnicos de refrigeración y climatización en Chile",
+    description: "Busca por servicio y ubicación, compara perfiles y solicita contacto directo.",
+    url: "/",
+  },
 };
 
 const categories: Array<{
@@ -91,9 +99,31 @@ export default async function HomePage() {
     : publicReviews.length === 2
       ? "testimonial-grid is-pair"
       : "testimonial-grid";
+  const siteUrl = publicSiteUrl("/");
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}#organization`,
+        name: "Red Técnicos Chile",
+        url: siteUrl,
+        description: "Directorio informativo de técnicos y empresas de refrigeración y climatización registrados voluntariamente en Chile.",
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}#website`,
+        name: "Red Técnicos Chile",
+        url: siteUrl,
+        inLanguage: "es-CL",
+        publisher: { "@id": `${siteUrl}#organization` },
+      },
+    ],
+  };
 
   return (
     <>
+      <JsonLd data={jsonLd} />
       <section className="landing-hero">
         <div className="container landing-hero-grid">
           <div className="landing-hero-copy">

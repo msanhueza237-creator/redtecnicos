@@ -8,6 +8,13 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Técnicos de refrigeración y climatización",
+  description: "Busca técnicos y empresas de refrigeración y climatización por servicio, región y comuna en Chile.",
+  alternates: { canonical: "/tecnicos" },
+  openGraph: {
+    title: "Directorio de técnicos de refrigeración y climatización",
+    description: "Compara cobertura, servicios, experiencia e información publicada antes de solicitar contacto.",
+    url: "/tecnicos",
+  },
 };
 
 interface DirectoryPageProps {

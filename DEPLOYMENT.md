@@ -48,6 +48,7 @@ pÃºblicos que todavÃ­a funcionan con fixtures. En esa transiciÃ³n,
 El inventario definitivo vive en `.env.example`. Se esperan, por categoría:
 
 - Aplicación: entorno, URL, versión, fecha de build y origen de datos.
+- Descubrimiento: `SEO_INDEXING_ENABLED` y verificación de Google Search Console.
 - Supabase: URL y anon key públicas; service role solo de servidor.
 - Turnstile: site key pública y secret solo de servidor.
 - Resend: API key, remitente y modo sandbox.
@@ -121,9 +122,15 @@ Orden de una publicación autorizada:
 2. Verificar backup y restauración; registrar imagen y migración objetivo.
 3. Aplicar migraciones compatibles hacia adelante y verificarlas.
 4. Desplegar la imagen inmutable con demos deshabilitados.
-5. Ejecutar health, smoke tests y controles de privacidad/RLS.
-6. Monitorear errores y métricas mínimas sin PII.
-7. Confirmar o ejecutar rollback documentado.
+5. Mantener `SEO_INDEXING_ENABLED=false` durante los smoke tests privados.
+6. Ejecutar health, smoke tests y controles de privacidad/RLS.
+7. Después de autorizar la apertura pública, configurar
+   `SEO_INDEXING_ENABLED=true`, `DEPLOYMENT_ENV=production`,
+   `APP_DATA_SOURCE=supabase`, `NEXT_PUBLIC_ENABLE_DEMO_PROFILES=false` y el
+   origen canónico `https://redtecnicos.cl`; verificar `/robots.txt` y
+   `/sitemap.xml` antes de enviar el sitemap a Search Console.
+8. Monitorear errores y métricas mínimas sin PII.
+9. Confirmar o ejecutar rollback documentado.
 
 ## Rollback
 
