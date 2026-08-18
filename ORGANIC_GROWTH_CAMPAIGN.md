@@ -1,5 +1,8 @@
 # Campaña orgánica: “Encuentra al técnico correcto”
 
+Estado de implementación: publicada en producción el 17 de agosto de 2026 con
+acceso visual únicamente desde la fila discreta del pie de página.
+
 ## Objetivo de 90 días
 
 Generar demanda orgánica para Red Técnicos Chile y convertirla en solicitudes de
