@@ -26,5 +26,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      # GitHub's Ubuntu runner already includes Playwright's shared system
+      # libraries. Avoid apt mirror outages during every CI execution.
+      - run: npx playwright install chromium
       - run: npm run test:e2e
