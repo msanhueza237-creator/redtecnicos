@@ -43,16 +43,24 @@ describe("directory filters", () => {
     expect(residential.length).toBeGreaterThan(0);
   });
 
-  it("projects only reviewed qualifications and approved images, up to three", () => {
+  it("projects only reviewed qualifications and approved images, up to five", () => {
     const source = demoProfessionals[0]!;
     const projected = projectPublicProfessional({
       ...source,
       qualifications: [...source.qualifications, { id: "QUAL-PRIVATE", type: "training", title: "No publicar", institution: "Demo", issuedYear: 2026, status: "pending_review", reviewedAt: "Pendiente" }],
-      portfolio: [...source.portfolio, { ...source.portfolio[0]!, id: "IMAGE-PRIVATE", status: "pending_review" }],
+      portfolio: [
+        ...source.portfolio,
+        { ...source.portfolio[0]!, id: "IMAGE-APPROVED-4" },
+        { ...source.portfolio[1]!, id: "IMAGE-APPROVED-5" },
+        { ...source.portfolio[2]!, id: "IMAGE-APPROVED-6" },
+        { ...source.portfolio[0]!, id: "IMAGE-PRIVATE", status: "pending_review" },
+      ],
     });
     expect(projected.qualifications.every((qualification) => qualification.status === "reviewed")).toBe(true);
     expect(projected.qualifications.some((qualification) => qualification.id === "QUAL-PRIVATE")).toBe(false);
-    expect(projected.portfolio).toHaveLength(3);
+    expect(projected.portfolio).toHaveLength(5);
     expect(projected.portfolio.every((item) => item.status === "approved")).toBe(true);
+    expect(projected.portfolio.some((item) => item.id === "IMAGE-APPROVED-6")).toBe(false);
+    expect(projected.portfolio.some((item) => item.id === "IMAGE-PRIVATE")).toBe(false);
   });
 });

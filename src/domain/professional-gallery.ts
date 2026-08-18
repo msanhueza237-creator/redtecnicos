@@ -32,7 +32,9 @@ export const galleryAcceptedMimeTypes = [
   "image/avif",
 ] as const;
 
-export const MAX_GALLERY_ITEMS = 3;
+export const MAX_GALLERY_ITEMS = 5;
+export const MAX_GALLERY_BATCH_FILES = 5;
+export const MAX_PUBLIC_GALLERY_PREVIEW_ITEMS = 3;
 export const MAX_GALLERY_UPLOAD_BYTES = 8 * 1024 * 1024;
 
 export interface ProfessionalGalleryItem {
@@ -50,7 +52,8 @@ export interface ProfessionalGalleryItem {
 
 export function nextAvailableGalleryOrder(usedOrders: readonly number[]): number | null {
   const occupied = new Set(usedOrders);
-  return [1, 2, 3].find((order) => !occupied.has(order)) ?? null;
+  return Array.from({ length: MAX_GALLERY_ITEMS }, (_, index) => index + 1)
+    .find((order) => !occupied.has(order)) ?? null;
 }
 
 export function galleryStatusLabel(status: GalleryModerationState): string {

@@ -213,12 +213,12 @@ export default async function HomePage() {
             <article className="audience-process-card">
               <span className="audience-label"><UserRoundSearch size={17} aria-hidden="true" /> Para el cliente</span>
               <h3>Necesito un servicio</h3>
-              <ol><li><span>1</span><div><strong>Busca y compara</strong><p>Filtra por categoría, región, comuna, experiencia y formación revisada.</p></div></li><li><span>2</span><div><strong>Revisa el perfil</strong><p>Consulta cobertura, servicios, tres trabajos y evaluaciones asociadas a solicitudes.</p></div></li><li><span>3</span><div><strong>Solicita contacto</strong><p>Registra tu necesidad y recibe inmediatamente correo, teléfono y WhatsApp.</p></div></li></ol>
+              <ol><li><span>1</span><div><strong>Busca y compara</strong><p>Filtra por categoría, región, comuna, experiencia y formación revisada.</p></div></li><li><span>2</span><div><strong>Revisa el perfil</strong><p>Compara fotografías destacadas, cobertura, servicios y evaluaciones asociadas a solicitudes.</p></div></li><li><span>3</span><div><strong>Solicita contacto</strong><p>Registra tu necesidad y recibe inmediatamente correo, teléfono y WhatsApp.</p></div></li></ol>
             </article>
             <article className="audience-process-card is-professional">
               <span className="audience-label"><BadgeCheck size={17} aria-hidden="true" /> Para el técnico</span>
               <h3>Quiero ofrecer mis servicios</h3>
-              <ol><li><span>1</span><div><strong>Crea tu perfil breve</strong><p>Completa cuenta, presentación, servicios y cobertura en cuatro etapas.</p></div></li><li><span>2</span><div><strong>Mejora tu vitrina</strong><p>Agrega después formación y hasta tres fotografías desde el panel.</p></div></li><li><span>3</span><div><strong>Gestiona solicitudes</strong><p>Revisa cada contacto y registra su avance desde un historial privado.</p></div></li></ol>
+              <ol><li><span>1</span><div><strong>Crea tu perfil breve</strong><p>Completa cuenta, presentación, servicios y cobertura en cuatro etapas.</p></div></li><li><span>2</span><div><strong>Mejora tu vitrina</strong><p>Agrega después formación y hasta cinco fotografías desde el panel.</p></div></li><li><span>3</span><div><strong>Gestiona solicitudes</strong><p>Revisa cada contacto y registra su avance desde un historial privado.</p></div></li></ol>
               <Link className="button button-primary" href="/registro-tecnico">Publicar mi perfil <ArrowRight size={16} aria-hidden="true" /></Link>
             </article>
           </div>

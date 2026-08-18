@@ -160,7 +160,7 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
                   <h2 id="portfolio-title">Trabajos realizados</h2>
                   <p>{professional.isDemo ? "Imágenes ilustrativas de demostración; no corresponden a trabajos atribuibles a una persona real." : "Fotografías declaradas por el profesional y aprobadas para publicación."}</p>
                 </div>
-                <span className="professional-panel-status is-approved">{professional.portfolio.length}/3 revisadas</span>
+                <span className="professional-panel-status is-approved">{professional.portfolio.length}/5 revisadas</span>
               </div>
               <div className="portfolio-grid">
                 {professional.portfolio.map((item) => (

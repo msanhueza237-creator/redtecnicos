@@ -69,7 +69,7 @@ test("document and gallery examples never request a real file", async ({ page })
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
   await expect(page.locator(".professional-panel-gallery-item img")).toHaveCount(3);
   await page.getByRole("button", { name: "Retirar" }).first().click();
-  await page.getByRole("button", { name: /Agregar trabajo \(2\/3\)/ }).click();
+  await page.getByRole("button", { name: /Agregar trabajo \(2\/5\)/ }).click();
   await expect(page.locator('input[value="Nueva instalación de ejemplo"]')).toBeVisible();
   await expect(page.locator(".professional-panel-content").getByRole("status"))
     .toContainText("No se cargó ningún archivo");

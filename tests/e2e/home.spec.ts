@@ -25,6 +25,14 @@ test("landing metrics are calculated from fixtures and not zero", async ({ page 
   await expect(metrics).toContainText("Evaluaciones demo");
 });
 
+test("published profile cards preview up to three approved works", async ({ page }) => {
+  await page.goto("/");
+  const cards = page.locator(".profile-card");
+  await expect(cards).toHaveCount(6);
+  await expect(cards.first().locator(".profile-card-gallery-image")).toHaveCount(3);
+  await expect(cards.first().locator(".profile-card-gallery-label")).toContainText("3 trabajos destacados");
+});
+
 test("landing does not use prohibited guarantee language", async ({ page }) => {
   await page.goto("/");
   const text = (await page.locator("body").innerText()).toLocaleLowerCase("es-CL");

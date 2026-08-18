@@ -108,13 +108,13 @@ export async function POST(request: Request) {
     .order("display_order");
   if (currentError) return errorResponse("GALLERY_UNAVAILABLE", "No fue posible comprobar tu galería.", 503);
   if ((currentItems?.length ?? 0) >= MAX_GALLERY_ITEMS) {
-    return errorResponse("GALLERY_LIMIT", "Tu perfil ya contiene el máximo de tres fotografías.", 409);
+    return errorResponse("GALLERY_LIMIT", "Tu perfil ya contiene el máximo de cinco fotografías.", 409);
   }
 
   const displayOrder = nextAvailableGalleryOrder(
     (currentItems ?? []).map((item) => Number(item.display_order)),
   );
-  if (!displayOrder) return errorResponse("GALLERY_LIMIT", "Tu perfil ya contiene el máximo de tres fotografías.", 409);
+  if (!displayOrder) return errorResponse("GALLERY_LIMIT", "Tu perfil ya contiene el máximo de cinco fotografías.", 409);
 
   const storagePath = `${session.userId}/${randomUUID()}.webp`;
   const { error: uploadError } = await supabase.storage

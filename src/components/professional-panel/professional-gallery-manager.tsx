@@ -2,11 +2,15 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { ImagePlus, LoaderCircle, Trash2, UploadCloud } from "lucide-react";
 import {
   galleryStatusClass,
   galleryStatusLabel,
+  galleryAcceptedMimeTypes,
+  MAX_GALLERY_BATCH_FILES,
   MAX_GALLERY_ITEMS,
+  MAX_GALLERY_UPLOAD_BYTES,
   type ProfessionalGalleryCategory,
   type ProfessionalGalleryItem,
 } from "@/domain/professional-gallery";
@@ -23,36 +27,125 @@ interface GalleryApiResponse<T> {
   error: { code: string; message: string } | null;
 }
 
+interface PendingGalleryFile {
+  id: string;
+  file: File;
+  title: string;
+}
+
+function titleFromFile(file: File, index: number): string {
+  const cleaned = file.name
+    .replace(/\.[^.]+$/u, "")
+    .replace(/[_-]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .slice(0, 120);
+  return cleaned.length >= 2 ? cleaned : `Trabajo realizado ${index + 1}`;
+}
+
 export function ProfessionalGalleryManager({ initialItems }: Readonly<{ initialItems: ProfessionalGalleryItem[] }>) {
   const [items, setItems] = useState(initialItems);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<PendingGalleryFile[]>([]);
+  const [batchCategory, setBatchCategory] = useState<ProfessionalGalleryCategory>("residential");
+  const [batchDescription, setBatchDescription] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const atLimit = items.length >= MAX_GALLERY_ITEMS;
+  const remainingSlots = Math.max(0, MAX_GALLERY_ITEMS - items.length);
 
-  async function uploadImage(event: React.FormEvent<HTMLFormElement>) {
+  function selectImages(event: ChangeEvent<HTMLInputElement>) {
+    setError(null);
+    setMessage(null);
+    const files = Array.from(event.currentTarget.files ?? []);
+    if (!files.length) {
+      setPendingFiles([]);
+      return;
+    }
+    if (files.length > MAX_GALLERY_BATCH_FILES || files.length > remainingSlots) {
+      const allowed = Math.min(MAX_GALLERY_BATCH_FILES, remainingSlots);
+      setPendingFiles([]);
+      event.currentTarget.value = "";
+      setError(`Puedes seleccionar hasta ${allowed} ${allowed === 1 ? "fotografía" : "fotografías"} en esta carga.`);
+      return;
+    }
+    const invalid = files.find((file) =>
+      file.size > MAX_GALLERY_UPLOAD_BYTES ||
+      !galleryAcceptedMimeTypes.includes(file.type as (typeof galleryAcceptedMimeTypes)[number]),
+    );
+    if (invalid) {
+      setPendingFiles([]);
+      event.currentTarget.value = "";
+      setError(`“${invalid.name}” no cumple el formato permitido o supera 8 MB.`);
+      return;
+    }
+    setPendingFiles(files.map((file, index) => ({
+      id: `${file.name}-${file.size}-${file.lastModified}-${index}`,
+      file,
+      title: titleFromFile(file, index),
+    })));
+  }
+
+  function updatePendingTitle(id: string, title: string) {
+    setPendingFiles((current) => current.map((entry) => entry.id === id ? { ...entry, title } : entry));
+  }
+
+  async function uploadImages(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setMessage(null);
+    if (!pendingFiles.length) {
+      setError("Selecciona al menos una fotografía para continuar.");
+      return;
+    }
     setUploading(true);
+    setUploadProgress(0);
 
     try {
-      const response = await fetch("/api/v1/profiles/gallery", {
-        method: "POST",
-        body: new FormData(event.currentTarget),
-      });
-      const payload = await response.json() as GalleryApiResponse<ProfessionalGalleryItem>;
-      if (!response.ok || !payload.data) throw new Error(payload.error?.message ?? "No fue posible cargar la fotografía.");
+      const uploaded: ProfessionalGalleryItem[] = [];
+      let failure: Error | null = null;
 
-      setItems((current) => [...current, payload.data!].sort((a, b) => a.displayOrder - b.displayOrder));
+      for (const [index, entry] of pendingFiles.entries()) {
+        setUploadProgress(index + 1);
+        const formData = new FormData();
+        formData.set("image", entry.file);
+        formData.set("title", entry.title);
+        formData.set("category", batchCategory);
+        formData.set("description", batchDescription);
+
+        try {
+          const response = await fetch("/api/v1/profiles/gallery", { method: "POST", body: formData });
+          const payload = await response.json() as GalleryApiResponse<ProfessionalGalleryItem>;
+          if (!response.ok || !payload.data) throw new Error(payload.error?.message ?? `No fue posible cargar “${entry.file.name}”.`);
+          uploaded.push(payload.data);
+        } catch (currentError) {
+          failure = currentError instanceof Error ? currentError : new Error(`No fue posible cargar “${entry.file.name}”.`);
+          break;
+        }
+      }
+
+      if (uploaded.length) {
+        setItems((current) => [...current, ...uploaded].sort((a, b) => a.displayOrder - b.displayOrder));
+      }
+
+      if (failure) {
+        setPendingFiles((current) => current.slice(uploaded.length));
+        setError(`${uploaded.length ? `Se cargaron ${uploaded.length} de ${pendingFiles.length}. ` : ""}${failure.message}`);
+        return;
+      }
+
       formRef.current?.reset();
-      setMessage("Fotografía cargada correctamente. Quedó en revisión antes de publicarse.");
+      setPendingFiles([]);
+      setBatchDescription("");
+      setMessage(`${uploaded.length} ${uploaded.length === 1 ? "fotografía cargada" : "fotografías cargadas"} correctamente. ${uploaded.length === 1 ? "Quedó" : "Quedaron"} en revisión antes de publicarse.`);
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "No fue posible cargar la fotografía.");
+      setError(uploadError instanceof Error ? uploadError.message : "No fue posible cargar las fotografías.");
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   }
 
@@ -78,45 +171,62 @@ export function ProfessionalGalleryManager({ initialItems }: Readonly<{ initialI
 
   return (
     <div className={styles.manager}>
-      <form className={`professional-panel-form ${styles.upload}`} onSubmit={uploadImage} ref={formRef}>
+      <form className={`professional-panel-form ${styles.upload}`} onSubmit={uploadImages} ref={formRef}>
         <div className="professional-panel-card-header">
           <div>
-            <h2>Agregar un trabajo</h2>
-            <p>Usaremos una copia WebP optimizada y eliminaremos los metadatos de la fotografía.</p>
+            <h2>Subir trabajos</h2>
+            <p>Selecciona varias fotografías en una sola acción. Crearemos copias WebP optimizadas y eliminaremos sus metadatos.</p>
           </div>
           <span className="professional-panel-status is-neutral">{items.length}/{MAX_GALLERY_ITEMS}</span>
         </div>
         <div className="professional-panel-form-grid">
           <label className={`professional-panel-field professional-panel-field-span ${styles.file}`}>
-            <span>Fotografía del trabajo</span>
+            <span>Fotografías de trabajos</span>
             <input
               accept="image/jpeg,image/png,image/webp,image/avif"
               disabled={atLimit || uploading}
-              name="image"
-              required
+              multiple
+              onChange={selectImages}
               type="file"
             />
-            <small>JPG, PNG, WebP o AVIF · máximo 8 MB. Evita rostros, patentes, direcciones y documentos personales.</small>
+            <small>Selecciona hasta {Math.min(MAX_GALLERY_BATCH_FILES, remainingSlots)} a la vez · JPG, PNG, WebP o AVIF · máximo 8 MB por imagen. Evita rostros, patentes, direcciones y documentos personales.</small>
           </label>
-          <label className="professional-panel-field">
-            <span>Título</span>
-            <input disabled={atLimit || uploading} maxLength={120} minLength={2} name="title" placeholder="Ej.: Instalación de equipo split" required />
-          </label>
-          <label className="professional-panel-field">
-            <span>Categoría</span>
-            <select disabled={atLimit || uploading} name="category" required>
-              {Object.entries(categoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
-          </label>
-          <label className="professional-panel-field professional-panel-field-span">
-            <span>Descripción</span>
-            <textarea disabled={atLimit || uploading} maxLength={600} minLength={10} name="description" placeholder="Describe brevemente el equipo, la instalación o la mantención realizada." required rows={4} />
-          </label>
+          {pendingFiles.length ? (
+            <>
+              <label className="professional-panel-field">
+                <span>Categoría de esta carga</span>
+                <select disabled={uploading} onChange={(event) => setBatchCategory(event.target.value as ProfessionalGalleryCategory)} required value={batchCategory}>
+                  {Object.entries(categoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </label>
+              <label className="professional-panel-field professional-panel-field-span">
+                <span>Descripción común</span>
+                <textarea disabled={uploading} maxLength={600} minLength={10} onChange={(event) => setBatchDescription(event.target.value)} placeholder="Describe el equipo, la instalación o la mantención que aparece en estas fotografías." required rows={4} value={batchDescription} />
+                <small>Esta descripción se aplicará a todas las fotografías seleccionadas.</small>
+              </label>
+              <div className={`professional-panel-field professional-panel-field-span ${styles.batchList}`} aria-label="Fotografías seleccionadas">
+                <span>{pendingFiles.length} {pendingFiles.length === 1 ? "fotografía seleccionada" : "fotografías seleccionadas"}</span>
+                {pendingFiles.map((entry, index) => (
+                  <article className={styles.pendingItem} key={entry.id}>
+                    <span className={styles.pendingIndex}>{index + 1}</span>
+                    <div className={styles.pendingFile}>
+                      <strong>{entry.file.name}</strong>
+                      <small>{(entry.file.size / (1024 * 1024)).toFixed(1)} MB</small>
+                    </div>
+                    <label>
+                      <span>Título público</span>
+                      <input disabled={uploading} maxLength={120} minLength={2} onChange={(event) => updatePendingTitle(entry.id, event.target.value)} required value={entry.title} />
+                    </label>
+                  </article>
+                ))}
+              </div>
+            </>
+          ) : null}
         </div>
         <div className="professional-panel-actions">
-          <button className="button button-primary" disabled={atLimit || uploading} type="submit">
+          <button className="button button-primary" disabled={atLimit || uploading || !pendingFiles.length} type="submit">
             {uploading ? <LoaderCircle aria-hidden="true" className={styles.spinner} size={18} /> : <UploadCloud aria-hidden="true" size={18} />}
-            {uploading ? "Procesando fotografía…" : atLimit ? "Galería completa" : "Cargar y enviar a revisión"}
+            {uploading ? `Procesando ${uploadProgress}/${pendingFiles.length}…` : atLimit ? "Galería completa" : pendingFiles.length ? `Cargar ${pendingFiles.length} y enviar a revisión` : "Selecciona fotografías"}
           </button>
         </div>
       </form>
@@ -157,7 +267,7 @@ export function ProfessionalGalleryManager({ initialItems }: Readonly<{ initialI
         <div className="professional-panel-empty">
           <span><ImagePlus aria-hidden="true" size={24} /></span>
           <h2>Aún no has cargado trabajos</h2>
-          <p>Puedes presentar hasta tres fotografías. Cada una será revisada antes de aparecer en tu perfil público.</p>
+          <p>Puedes presentar hasta cinco fotografías y seleccionar varias de una vez. Cada una será revisada antes de aparecer públicamente.</p>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_GALLERY_ITEMS } from "@/domain/professional-gallery";
 
 export const professionalKindSchema = z.enum(["technician", "company"]);
 export type ProfessionalKind = z.infer<typeof professionalKindSchema>;
@@ -179,7 +180,7 @@ export function projectPublicProfessional(professional: Professional): Professio
   return {
     ...professional,
     qualifications: professional.qualifications.filter((qualification) => qualification.status === "reviewed"),
-    portfolio: professional.portfolio.filter((item) => item.status === "approved").slice(0, 3),
+    portfolio: professional.portfolio.filter((item) => item.status === "approved").slice(0, MAX_GALLERY_ITEMS),
   };
 }
 

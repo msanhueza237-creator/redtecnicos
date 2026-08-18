@@ -31,6 +31,84 @@
   padding: 7px 11px;
 }
 
+.batchList {
+  display: grid;
+  gap: 10px;
+}
+
+.batchList > span {
+  color: var(--ink-strong);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.pendingItem {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  grid-template-columns: auto minmax(130px, 0.65fr) minmax(180px, 1.35fr);
+  border: 1px solid #d5e2e9;
+  border-radius: 12px;
+  background: #f8fbfc;
+  padding: 12px;
+}
+
+.pendingIndex {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--brand-action);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pendingFile {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.pendingFile strong {
+  overflow: hidden;
+  color: var(--ink-strong);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pendingFile small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.pendingItem label {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.pendingItem label span {
+  color: #405866;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pendingItem input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid #b8cdd8;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-strong);
+  font: inherit;
+  padding: 8px 10px;
+}
+
 .spinner {
   animation: gallery-spin 850ms linear infinite;
 }
@@ -68,4 +146,15 @@
   color: #684800 !important;
   line-height: 1.45;
   padding: 8px 9px;
+}
+
+@media (max-width: 720px) {
+  .pendingItem {
+    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .pendingItem label {
+    grid-column: 1 / -1;
+  }
 }

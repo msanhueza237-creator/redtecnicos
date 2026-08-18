@@ -82,7 +82,7 @@ export default async function ProfessionalPanelPage() {
           <div className="professional-panel-metrics" aria-label="Indicadores reales del perfil">
             <article className="professional-panel-metric"><CircleGauge aria-hidden="true" size={21} /><span>Completitud inicial</span><strong>{completeness}%</strong><small>Datos mínimos del perfil</small></article>
             <article className="professional-panel-metric"><Inbox aria-hidden="true" size={21} /><span>Solicitudes recibidas</span><strong>{requestCount ?? 0}</strong><small>Historial asociado al perfil</small></article>
-            <article className="professional-panel-metric"><Images aria-hidden="true" size={21} /><span>Trabajos en galería</span><strong>{portfolioCount ?? 0}/3</strong><small>Opcionales y sujetos a revisión</small></article>
+            <article className="professional-panel-metric"><Images aria-hidden="true" size={21} /><span>Trabajos en galería</span><strong>{portfolioCount ?? 0}/5</strong><small>Opcionales y sujetos a revisión</small></article>
             <article className="professional-panel-metric"><FileBadge aria-hidden="true" size={21} /><span>Formación declarada</span><strong>{qualificationCount ?? 0}</strong><small>Títulos o capacitaciones</small></article>
           </div>
           <div className="professional-panel-grid is-wide">
@@ -98,7 +98,7 @@ export default async function ProfessionalPanelPage() {
             <article className="professional-panel-card">
               <div className="professional-panel-card-header"><div><h2>Próximos pasos opcionales</h2><p>No bloquean la postulación inicial.</p></div></div>
               <div className="professional-panel-list">
-                <Link className="professional-panel-list-item" href="/panel/galeria"><Images aria-hidden="true" size={20} /><div><strong>Galería de trabajos</strong><span className="professional-panel-list-meta">Agrega hasta tres imágenes con título y descripción.</span></div></Link>
+                <Link className="professional-panel-list-item" href="/panel/galeria"><Images aria-hidden="true" size={20} /><div><strong>Galería de trabajos</strong><span className="professional-panel-list-meta">Agrega hasta cinco imágenes con título y descripción.</span></div></Link>
                 <Link className="professional-panel-list-item" href="/panel/formacion"><FileBadge aria-hidden="true" size={20} /><div><strong>Formación y capacitaciones</strong><span className="professional-panel-list-meta">Declara antecedentes y adjunta respaldos privados.</span></div></Link>
                 <Link className="professional-panel-list-item" href="/panel/documentos"><FileClock aria-hidden="true" size={20} /><div><strong>Documentos</strong><span className="professional-panel-list-meta">Gestiona archivos que requieran revisión.</span></div></Link>
               </div>

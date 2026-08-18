@@ -27,7 +27,7 @@ export default async function AdminGalleriesPage() {
     const result = await listAdminGalleryItems();
     return (
       <section className="admin-page">
-        <AdminPageHeading eyebrow="Operación real" title="Galerías" description="Revisa hasta tres trabajos por perfil antes de incorporarlos a la proyección pública." />
+        <AdminPageHeading eyebrow="Operación real" title="Galerías" description="Revisa hasta cinco trabajos por perfil antes de incorporarlos a la proyección pública." />
         <AdminOperationalNotice>Las imágenes provienen del almacenamiento privado. Aprobar, pedir cambios u ocultar actualiza la galería pública y registra la decisión en auditoría.</AdminOperationalNotice>
         {result.error ? <p className="auth-message" role="alert">{result.error}</p> : null}
         <div className="admin-gallery-review-grid">
@@ -53,7 +53,7 @@ export default async function AdminGalleriesPage() {
 
   return (
     <section className="admin-page">
-      <AdminPageHeading title="Galerías" description="Revisa hasta tres trabajos por perfil antes de incorporarlos a la proyección pública." />
+      <AdminPageHeading title="Galerías" description="Revisa hasta cinco trabajos por perfil antes de incorporarlos a la proyección pública." />
       <AdminDemoNotice>Las fotografías son ilustrativas y locales. Ocultar, aprobar o pedir cambios solo produce una confirmación visible en esta demo.</AdminDemoNotice>
       <div className="admin-gallery-review-grid">
         {adminGalleryItems.map((item) => (

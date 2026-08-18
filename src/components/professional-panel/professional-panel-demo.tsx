@@ -15,6 +15,7 @@ import {
   Save,
 } from "lucide-react";
 import type { ContactRequestStatus } from "@/domain/directory";
+import { MAX_GALLERY_ITEMS } from "@/domain/professional-gallery";
 import type {
   DemoEditableProfessionalProfile,
   DemoPanelCoverage,
@@ -357,8 +358,8 @@ export function GalleryDemoManager({ gallery }: Readonly<{ gallery: readonly Dem
           className="button button-primary"
           type="button"
           onClick={() => {
-            if (items.length >= 3) {
-              setMessage("El perfil admite un máximo de tres trabajos. Retira uno antes de agregar otro.");
+            if (items.length >= MAX_GALLERY_ITEMS) {
+              setMessage("El perfil admite un máximo de cinco trabajos. Retira uno antes de agregar otro.");
               return;
             }
             setItems((current) => [...current, {
@@ -376,7 +377,7 @@ export function GalleryDemoManager({ gallery }: Readonly<{ gallery: readonly Dem
             setMessage("Imagen de ejemplo añadida a la vista y marcada En revisión. No se cargó ningún archivo.");
           }}
         >
-          <ImagePlus aria-hidden="true" size={18} /> Agregar trabajo ({items.length}/3)
+          <ImagePlus aria-hidden="true" size={18} /> Agregar trabajo ({items.length}/{MAX_GALLERY_ITEMS})
         </button>
       </div>
       <DemoSavedMessage message={message} />

@@ -17,7 +17,7 @@ export default async function ProfessionalGalleryPage() {
       <>
         <ProfessionalPanelHeader
           title="Galería"
-          description="Presenta hasta tres trabajos reales y revisa su estado de moderación."
+          description="Presenta hasta cinco trabajos reales y revisa su estado de moderación."
         />
         <PanelOperationalNotice>
           Las fotografías se guardan de forma privada, se optimizan para eliminar metadatos y solo aparecen públicamente después de ser aprobadas.
@@ -32,7 +32,7 @@ export default async function ProfessionalGalleryPage() {
     <>
       <ProfessionalPanelHeader
         title="Galería"
-        description="Presenta hasta tres trabajos, ordénalos y revisa su estado antes de publicarlos."
+        description="Presenta hasta cinco trabajos, ordénalos y revisa su estado antes de publicarlos."
       />
       <PanelDemoNotice>
         Las tres fotografías son ilustrativas. Los controles modifican solo esta vista y no abren archivos ni transmiten datos.

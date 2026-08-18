@@ -10,6 +10,7 @@ import type {
   Qualification,
   VerificationBadge,
 } from "@/domain/directory";
+import { MAX_GALLERY_ITEMS } from "@/domain/professional-gallery";
 import { regionNameFromCode } from "@/domain/professional-registration";
 import { isSupabaseMode } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -211,7 +212,7 @@ function mapPortfolio(value: unknown, signedUrls: Map<string, string>): Portfoli
       }];
     })
     .sort((left, right) => left.order - right.order)
-    .slice(0, 3)
+    .slice(0, MAX_GALLERY_ITEMS)
     .map((item) => ({
       id: item.id,
       title: item.title,

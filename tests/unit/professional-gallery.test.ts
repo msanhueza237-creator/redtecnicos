@@ -3,6 +3,8 @@ import {
   galleryItemInputSchema,
   galleryStatusClass,
   galleryStatusLabel,
+  MAX_GALLERY_BATCH_FILES,
+  MAX_GALLERY_ITEMS,
   nextAvailableGalleryOrder,
 } from "@/domain/professional-gallery";
 
@@ -25,10 +27,12 @@ describe("professional gallery", () => {
     }).success).toBe(false);
   });
 
-  it("encuentra solo una de las tres posiciones permitidas", () => {
+  it("encuentra una de las cinco posiciones permitidas", () => {
     expect(nextAvailableGalleryOrder([])).toBe(1);
-    expect(nextAvailableGalleryOrder([1, 3])).toBe(2);
-    expect(nextAvailableGalleryOrder([1, 2, 3])).toBeNull();
+    expect(nextAvailableGalleryOrder([1, 2, 4, 5])).toBe(3);
+    expect(nextAvailableGalleryOrder([1, 2, 3, 4, 5])).toBeNull();
+    expect(MAX_GALLERY_ITEMS).toBe(5);
+    expect(MAX_GALLERY_BATCH_FILES).toBe(5);
   });
 
   it("presenta estados comprensibles para el profesional", () => {

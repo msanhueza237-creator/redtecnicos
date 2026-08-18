@@ -74,7 +74,7 @@ export default async function ApplicationDetailPage({ params }: Props) {
             <AdminCard title="Formación" description="Opcional y posterior al registro">
               {liveApplication.qualifications?.length ? <dl className="admin-info-list">{liveApplication.qualifications.map((qualification) => <div key={qualification.id}><dt>{qualification.type}</dt><dd><strong>{qualification.title}</strong><br />{qualification.institution} · {qualification.year} · {qualification.status}</dd></div>)}</dl> : <p className="admin-card-copy">El profesional todavía no agregó títulos o capacitaciones.</p>}
             </AdminCard>
-            <AdminCard title="Galería de trabajos" description="Máximo tres imágenes, agregadas después desde el panel">
+            <AdminCard title="Galería de trabajos" description="Máximo cinco imágenes, agregadas después desde el panel">
               {liveApplication.portfolio?.length ? <dl className="admin-info-list">{liveApplication.portfolio.map((item) => <div key={item.id}><dt>{item.title}</dt><dd>{item.category} · {item.status}</dd></div>)}</dl> : <p className="admin-card-copy">El profesional todavía no agregó trabajos.</p>}
             </AdminCard>
           </div>
@@ -106,7 +106,7 @@ export default async function ApplicationDetailPage({ params }: Props) {
   if (!application) notFound();
   const documents = adminDocuments.filter((document) => document.owner === application.name);
   const qualifications = adminQualifications.filter((qualification) => qualification.owner === application.name);
-  const gallery = adminGalleryItems.filter((item) => item.owner === application.name).slice(0, 3);
+  const gallery = adminGalleryItems.filter((item) => item.owner === application.name).slice(0, 5);
 
   return (
     <section className="admin-page">
