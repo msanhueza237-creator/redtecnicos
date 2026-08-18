@@ -5364,7 +5364,7 @@ fieldset.professional-panel-field {
 .landing-floating-card span { display: grid; }
 .landing-floating-card strong { color: var(--ink-strong); font-size: 13px; }
 .landing-floating-card small { color: var(--muted); font-size: 10px; }
-.landing-floating-card.is-verified { top: 9%; left: -22px; }
+.landing-floating-card.is-verified { top: 9%; left: 18px; }
 .landing-floating-card.is-contact { right: 18px; bottom: 11%; }
 
 .landing-metrics {

@@ -25,6 +25,24 @@ test("landing metrics are calculated from fixtures and not zero", async ({ page 
   await expect(metrics).toContainText("149 evaluaciones demo");
 });
 
+test("hero trust cards remain fully inside the photograph", async ({ page }) => {
+  await page.goto("/");
+  const mediaBox = await page.locator(".landing-hero-media").boundingBox();
+  const trustCards = page.locator(".landing-floating-card:visible");
+
+  expect(await trustCards.count()).toBeGreaterThan(0);
+  expect(mediaBox).not.toBeNull();
+
+  for (let index = 0; index < await trustCards.count(); index += 1) {
+    const cardBox = await trustCards.nth(index).boundingBox();
+    expect(cardBox).not.toBeNull();
+    expect(cardBox!.x).toBeGreaterThanOrEqual(mediaBox!.x);
+    expect(cardBox!.x + cardBox!.width).toBeLessThanOrEqual(mediaBox!.x + mediaBox!.width + 1);
+    expect(cardBox!.y).toBeGreaterThanOrEqual(mediaBox!.y);
+    expect(cardBox!.y + cardBox!.height).toBeLessThanOrEqual(mediaBox!.y + mediaBox!.height + 1);
+  }
+});
+
 test("published profile cards preview up to three approved works", async ({ page }) => {
   await page.goto("/");
   const cards = page.locator(".profile-card");
