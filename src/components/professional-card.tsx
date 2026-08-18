@@ -13,43 +13,11 @@ export function ProfessionalCard({ professional }: { professional: Professional 
   const previewImages = professional.portfolio
     .filter((item) => item.status === "approved")
     .slice(0, MAX_PUBLIC_GALLERY_PREVIEW_ITEMS);
-  const primaryCategory = professional.categories[0] ?? "residential";
   const visibleBadge = professional.badges[0];
 
   return (
     <article className="profile-card">
       <div className="card-topline" aria-hidden="true" />
-      {previewImages.length ? (
-        <Link
-          aria-label={`Ver perfil y trabajos de ${professional.displayName}`}
-          className="profile-card-gallery"
-          href={profileHref}
-        >
-          <span className="profile-card-gallery-grid" data-count={previewImages.length}>
-            {previewImages.map((item) => (
-              <span className="profile-card-gallery-image" key={item.id}>
-                <Image
-                  alt={item.alt}
-                  fill
-                  sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 30vw"
-                  src={item.imageSrc}
-                />
-              </span>
-            ))}
-          </span>
-          <span className="profile-card-gallery-label"><Images aria-hidden="true" size={14} /> {previewImages.length} {previewImages.length === 1 ? "trabajo destacado" : "trabajos destacados"}</span>
-        </Link>
-      ) : (
-        <Link
-          aria-label={`Ver perfil de ${professional.displayName}`}
-          className={`profile-card-gallery is-empty is-${primaryCategory}`}
-          href={profileHref}
-        >
-          <span className="profile-card-gallery-placeholder-icon"><Wrench aria-hidden="true" size={24} /></span>
-          <strong>{categoryLabels[primaryCategory]}</strong>
-          <small>Perfil profesional publicado</small>
-        </Link>
-      )}
       <div className="profile-card-body">
         <div className="profile-identity">
           <ProfessionalAvatar imageUrl={professional.avatarUrl} initials={professional.initials} name={professional.displayName} sizes="56px" />
@@ -86,6 +54,28 @@ export function ProfessionalCard({ professional }: { professional: Professional 
             </span>
           ))}
         </div>
+
+        {previewImages.length ? (
+          <Link
+            aria-label={`Ver perfil y trabajos de ${professional.displayName}`}
+            className="profile-card-gallery is-inline"
+            href={profileHref}
+          >
+            <span className="profile-card-gallery-grid" data-count={previewImages.length}>
+              {previewImages.map((item) => (
+                <span className="profile-card-gallery-image" key={item.id}>
+                  <Image
+                    alt={item.alt}
+                    fill
+                    sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 25vw"
+                    src={item.imageSrc}
+                  />
+                </span>
+              ))}
+            </span>
+            <span className="profile-card-gallery-label"><Images aria-hidden="true" size={14} /> {previewImages.length} {previewImages.length === 1 ? "trabajo" : "trabajos"}</span>
+          </Link>
+        ) : null}
 
         <div className="card-proof-row">
           {professional.reviewCount > 0 ? (

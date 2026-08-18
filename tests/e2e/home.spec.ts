@@ -30,8 +30,11 @@ test("published profile cards preview up to three approved works", async ({ page
   const cards = page.locator(".profile-card");
   await expect(cards).toHaveCount(4);
   await expect(cards.first().locator(".profile-card-gallery-image")).toHaveCount(3);
-  await expect(cards.first().locator(".profile-card-gallery-label")).toContainText("3 trabajos destacados");
+  await expect(cards.first().locator(".profile-card-gallery-label")).toContainText("3 trabajos");
   await expect(cards.first()).not.toContainText("Nivel de revisión");
+  const galleryBox = await cards.first().locator(".profile-card-gallery").boundingBox();
+  const proofBox = await cards.first().locator(".card-proof-row").boundingBox();
+  expect(galleryBox && proofBox && galleryBox.y + galleryBox.height <= proofBox.y + 1).toBe(true);
 });
 
 test("landing does not use prohibited guarantee language", async ({ page }) => {

@@ -5767,6 +5767,18 @@ fieldset.professional-panel-field {
   font-size: 10px;
 }
 
+.profile-card-gallery.is-inline {
+  min-height: 132px;
+  overflow: hidden;
+  border: 1px solid #d5e3ea;
+  border-radius: 12px;
+  margin-top: 14px;
+}
+
+.profile-card-gallery.is-inline .profile-card-gallery-grid {
+  min-height: 132px;
+}
+
 .profile-card-body {
   padding: 18px;
 }
