@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   ArrowRight,
+  CalendarClock,
   CheckCircle2,
   Copy,
   Info,
@@ -35,6 +36,7 @@ interface ContactPreviewProps {
   services: string[];
   communes: string[];
   isDemo: boolean;
+  acceptsNewRequests?: boolean;
 }
 
 interface ContactApiResponse {
@@ -56,11 +58,23 @@ export function ContactPreview({
   services,
   communes,
   isDemo,
+  acceptsNewRequests = true,
 }: ContactPreviewProps) {
   const [result, setResult] = useState<ContactResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  if (!acceptsNewRequests) {
+    return (
+      <section className="contact-form" aria-labelledby="contact-paused-title">
+        <div className="contact-demo-label"><CalendarClock size={15} aria-hidden="true" /> Agenda temporalmente pausada</div>
+        <h2 id="contact-paused-title">No recibe nuevas solicitudes</h2>
+        <p className="contact-subtitle">Este profesional mantiene su perfil visible, pero indicó que por ahora no puede aceptar nuevos trabajos.</p>
+        <Link className="button button-secondary contact-submit" href="/tecnicos">Buscar otro profesional</Link>
+      </section>
+    );
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

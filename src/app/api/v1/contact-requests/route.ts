@@ -26,6 +26,9 @@ function databaseError(error: unknown) {
   if (message.includes("PROFESSIONAL_NOT_FOUND") || message.includes("PROFESSIONAL_CONTACT_UNAVAILABLE")) {
     return { status: 404, code: "PROFESSIONAL_NOT_FOUND", message: "El perfil no está disponible." };
   }
+  if (message.includes("PROFESSIONAL_NOT_AVAILABLE")) {
+    return { status: 409, code: "PROFESSIONAL_NOT_AVAILABLE", message: "Este profesional pausó temporalmente la recepción de nuevas solicitudes." };
+  }
   if (message.includes("INVALID_PROFILE_SELECTION")) {
     return { status: 400, code: "INVALID_PROFILE_SELECTION", message: "Selecciona una comuna y un servicio disponibles en este perfil." };
   }

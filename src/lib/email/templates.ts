@@ -309,6 +309,39 @@ export function qualificationDecisionEmailTemplate(input: QualificationDecisionE
   };
 }
 
+export interface IdentitySubmissionEmailInput {
+  applicantName: string;
+  professionalName: string;
+  documentType: string;
+  panelUrl: string;
+  adminUrl: string;
+}
+
+export function identityApplicantEmailTemplate(input: IdentitySubmissionEmailInput): EmailTemplate {
+  return {
+    subject: "Documento de identidad recibido · Red Técnicos Chile",
+    text: `Hola ${input.applicantName},\n\nRecibimos tu ${input.documentType}. El archivo superó el análisis de seguridad y quedó pendiente de revisión administrativa.\n\nRevisa su estado: ${input.panelUrl}\n\nEl documento completo permanecerá privado.`,
+    html: emailLayout({ preheader: "Tu documento privado quedó en revisión.", eyebrow: "Verificación de identidad", title: "Documento recibido", intro: `Hola ${input.applicantName}. El archivo superó el control automático de seguridad.`, bodyHtml: `${detailsTable([{ label: "Perfil", value: input.professionalName }, { label: "Tipo", value: input.documentType }, { label: "Estado", value: "Pendiente de revisión" }])}<p style="margin:18px 0 0;color:#50636e;font-size:13px;line-height:20px">El archivo nunca será público. Si se aprueba, el perfil mostrará únicamente la insignia “Identidad revisada”.</p>`, action: { label: "Revisar verificación", url: input.panelUrl }, footnote: "Nunca solicitaremos documentos respondiendo directamente a este correo." }),
+  };
+}
+
+export function identityAdministratorEmailTemplate(input: IdentitySubmissionEmailInput): EmailTemplate {
+  return {
+    subject: `Nueva identidad por revisar · ${input.professionalName}`,
+    text: `Nuevo documento privado\n\nPerfil: ${input.professionalName}\nTipo: ${input.documentType}\nAntivirus: Superado\nEstado: Pendiente\n\nRevisar: ${input.adminUrl}`,
+    html: emailLayout({ preheader: `${input.professionalName} envió un documento privado.`, eyebrow: "Verificación de identidad", title: "Nueva verificación por revisar", intro: "El archivo superó el control automático y solo está disponible para personal autorizado.", bodyHtml: detailsTable([{ label: "Perfil", value: input.professionalName }, { label: "Tipo", value: input.documentType }, { label: "Seguridad", value: "Análisis antivirus superado" }, { label: "Estado", value: "Pendiente de revisión" }]), action: { label: "Abrir bandeja documental", url: input.adminUrl }, footnote: "El documento no se adjunta al correo y el enlace exige una sesión administrativa." }),
+  };
+}
+
+export function identityDecisionEmailTemplate(input: { applicantName: string; decision: "approved" | "changes_requested" | "rejected"; reason: string; panelUrl: string }): EmailTemplate {
+  const copy = {
+    approved: { subject: "Identidad aprobada", state: "Aprobada" },
+    changes_requested: { subject: "Se requieren cambios en tu identidad", state: "Cambios solicitados" },
+    rejected: { subject: "Identidad no aprobada", state: "Rechazada" },
+  }[input.decision];
+  return { subject: copy.subject, text: `Hola ${input.applicantName},\n\nEstado: ${copy.state}\nMotivo: ${input.reason}\n\nRevisa tu panel: ${input.panelUrl}`, html: emailLayout({ preheader: `Resultado: ${copy.state}.`, eyebrow: "Resultado de verificación", title: copy.subject, intro: `Hola ${input.applicantName}. La administración terminó la revisión.`, bodyHtml: detailsTable([{ label: "Estado", value: copy.state }, { label: "Motivo", value: input.reason }]), action: { label: "Abrir identidad", url: input.panelUrl }, footnote: "El archivo completo permanece privado." }) };
+}
+
 export interface ReviewInvitationEmailInput {
   customerName: string;
   professionalName: string;

@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/storage/v1/object/sign/gallery-images/**",
       },
+      {
+        protocol: "https",
+        hostname: "supabase.redtecnicos.cl",
+        port: "",
+        pathname: "/storage/v1/object/sign/profile-images/**",
+      },
     ],
   },
   allowedDevOrigins: ["127.0.0.1"],

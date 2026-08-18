@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BriefcaseBusiness, Building2, GraduationCap, MapPin, Star, UserRound, Wrench } from "lucide-react";
 import { categoryLabels } from "@/data/demo-professionals";
 import type { Professional } from "@/domain/directory";
+import { ProfessionalAvatar } from "@/components/professional-avatar";
 
 export function ProfessionalCard({ professional }: { professional: Professional }) {
   const profileHref = `/${professional.kind === "company" ? "empresas" : "tecnicos"}/${professional.slug}` as Route;
@@ -13,9 +14,7 @@ export function ProfessionalCard({ professional }: { professional: Professional 
       <div className="card-topline" aria-hidden="true" />
       <div className="profile-card-body">
         <div className="profile-identity">
-          <div className="avatar" aria-hidden="true">
-            {professional.initials}
-          </div>
+          <ProfessionalAvatar imageUrl={professional.avatarUrl} initials={professional.initials} name={professional.displayName} sizes="56px" />
           <div>
             <span className="demo-pill">{professional.isDemo ? "Perfil de demostración" : professional.status === "verified" ? "Perfil verificado" : "Perfil publicado"}</span>
             <h3>
@@ -73,9 +72,13 @@ export function ProfessionalCard({ professional }: { professional: Professional 
           <Link className="button button-secondary" href={profileHref}>
             Ver perfil
           </Link>
-          <Link className="button button-primary" href={`${profileHref}#contacto` as Route}>
-            Solicitar contacto <ArrowRight size={15} aria-hidden="true" />
-          </Link>
+          {professional.acceptsNewRequests === false ? (
+            <span className="button button-secondary" aria-label="Este profesional no recibe nuevas solicitudes">Agenda pausada</span>
+          ) : (
+            <Link className="button button-primary" href={`${profileHref}#contacto` as Route}>
+              Solicitar contacto <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          )}
         </div>
       </div>
     </article>

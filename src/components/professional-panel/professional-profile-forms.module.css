@@ -1,0 +1,88 @@
+.avatarCard {
+  overflow: hidden;
+}
+
+.avatarBody {
+  align-items: center;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 144px minmax(0, 1fr);
+}
+
+.avatarPreview {
+  align-items: center;
+  aspect-ratio: 1;
+  background: linear-gradient(145deg, #e7f5fc, #f8fcff);
+  border: 1px solid #bed8e7;
+  border-radius: 28px;
+  color: #1f5f8f;
+  display: flex;
+  font-size: 2rem;
+  font-weight: 800;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  width: 144px;
+}
+
+.avatarPreview img {
+  object-fit: cover;
+}
+
+.avatarForm {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+
+.privateNote {
+  align-items: flex-start;
+  background: #eef7fc;
+  border: 1px solid #c9e0ed;
+  border-radius: 14px;
+  color: #24536d;
+  display: flex;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 14px;
+}
+
+.privateNote p,
+.reviewReason {
+  margin: 0;
+}
+
+.reviewReason {
+  background: #fff8e8;
+  border-top: 1px solid #f0dfac;
+  padding: 12px 20px;
+}
+
+.serviceGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 680px) {
+  .avatarBody {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+
+  .avatarPreview {
+    width: 120px;
+  }
+
+  .serviceGrid {
+    grid-template-columns: 1fr;
+  }
+}

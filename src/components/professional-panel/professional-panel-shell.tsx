@@ -12,6 +12,7 @@ import {
   MapPinned,
   MessageSquareText,
   Settings,
+  ShieldCheck,
   UserRound,
   Wrench,
 } from "lucide-react";
@@ -22,6 +23,7 @@ const panelNavigation = [
   { href: "/panel/servicios", label: "Servicios", icon: Wrench },
   { href: "/panel/cobertura", label: "Cobertura", icon: MapPinned },
   { href: "/panel/documentos", label: "Documentos", icon: FolderCheck },
+  { href: "/panel/identidad", label: "Identidad", icon: ShieldCheck },
   { href: "/panel/formacion", label: "Formación", icon: GraduationCap },
   { href: "/panel/galeria", label: "Galería", icon: Images },
   { href: "/panel/solicitudes", label: "Solicitudes", icon: Inbox },

@@ -25,6 +25,9 @@ export interface AdminProfessionalApplication {
   regionCode: string | null;
   communeCodes: string[];
   services: string[];
+  specialties: string[];
+  brands: string[];
+  equipmentTypes: string[];
   yearsExperience: number;
   modalities: string[];
   hasVehicle: boolean;
@@ -32,6 +35,17 @@ export interface AdminProfessionalApplication {
   submittedAt: string | null;
   updatedAt: string;
   reviewReason: string | null;
+  availability: string;
+  workingHours: string;
+  emergencyAvailable: boolean;
+  acceptsNewRequests: boolean;
+  issuesInvoice: boolean;
+  issuesReceipt: boolean;
+  writtenQuotes: boolean;
+  declaredWarranty: string;
+  paymentMethods: string[];
+  identityVerified: boolean;
+  avatarUrl?: string;
   email?: string;
   phone?: string;
   whatsappPhone?: string | null;
@@ -68,6 +82,9 @@ interface ProfileRow {
   region_code: string | null;
   commune_codes: string[];
   services: string[];
+  specialties: string[];
+  brands: string[];
+  equipment_types: string[];
   years_experience: number;
   modalities: string[];
   has_vehicle: boolean;
@@ -75,6 +92,17 @@ interface ProfileRow {
   submitted_at: string | null;
   updated_at: string;
   review_reason: string | null;
+  availability: string | null;
+  working_hours: string;
+  emergency_available: boolean;
+  accepts_new_requests: boolean;
+  issues_invoice: boolean;
+  issues_receipt: boolean;
+  written_quotes: boolean;
+  declared_warranty: string;
+  payment_methods: string[];
+  identity_verified_at: string | null;
+  avatar_path: string | null;
 }
 
 function mapProfile(row: ProfileRow): AdminProfessionalApplication {
@@ -88,6 +116,9 @@ function mapProfile(row: ProfileRow): AdminProfessionalApplication {
     regionCode: row.region_code,
     communeCodes: row.commune_codes,
     services: row.services,
+    specialties: row.specialties ?? [],
+    brands: row.brands ?? [],
+    equipmentTypes: row.equipment_types ?? [],
     yearsExperience: row.years_experience,
     modalities: row.modalities,
     hasVehicle: row.has_vehicle,
@@ -95,17 +126,27 @@ function mapProfile(row: ProfileRow): AdminProfessionalApplication {
     submittedAt: row.submitted_at,
     updatedAt: row.updated_at,
     reviewReason: row.review_reason,
+    availability: row.availability ?? "Agenda limitada",
+    workingHours: row.working_hours ?? "",
+    emergencyAvailable: row.emergency_available,
+    acceptsNewRequests: row.accepts_new_requests,
+    issuesInvoice: row.issues_invoice,
+    issuesReceipt: row.issues_receipt,
+    writtenQuotes: row.written_quotes,
+    declaredWarranty: row.declared_warranty ?? "",
+    paymentMethods: row.payment_methods ?? [],
+    identityVerified: Boolean(row.identity_verified_at),
   };
 }
 
-const profileFields = "id, kind, display_name, headline, summary, categories, region_code, commune_codes, services, years_experience, modalities, has_vehicle, status, submitted_at, updated_at, review_reason";
+const profileFields = "id, kind, display_name, headline, summary, categories, region_code, commune_codes, services, specialties, brands, equipment_types, years_experience, modalities, has_vehicle, availability, working_hours, emergency_available, accepts_new_requests, issues_invoice, issues_receipt, written_quotes, declared_warranty, payment_methods, identity_verified_at, avatar_path, status, submitted_at, updated_at, review_reason";
 
 export async function listProfessionalApplications(limit = 100): Promise<AdminApplicationsResult> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("professional_profiles")
     .select(profileFields)
-    .in("status", ["submitted", "under_review", "changes_requested", "approved", "rejected"])
+    .in("status", ["submitted", "under_review", "changes_requested", "approved", "verified", "rejected"])
     .order("updated_at", { ascending: false })
     .limit(limit);
 
@@ -131,6 +172,7 @@ export async function getProfessionalApplication(id: string): Promise<{ data: Ad
   ]);
 
   const result = mapProfile(profile as unknown as ProfileRow);
+  const profileRow = profile as unknown as ProfileRow;
   const contactRow = contact as null | { public_email: string; public_phone: string; whatsapp_phone: string | null };
   const qualificationRows = (qualifications ?? []) as Array<{ id: string; qualification_type: string; title: string; institution: string; issued_year: number; status: string }>;
   const portfolioRows = (portfolio ?? []) as Array<{ id: string; title: string; category: string; description: string; storage_path: string; status: string }>;
@@ -138,6 +180,7 @@ export async function getProfessionalApplication(id: string): Promise<{ data: Ad
   return {
     data: {
       ...result,
+      ...(profileRow.avatar_path ? { avatarUrl: (await supabase.storage.from("profile-images").createSignedUrl(profileRow.avatar_path, 5 * 60)).data?.signedUrl } : {}),
       email: contactRow?.public_email,
       phone: contactRow?.public_phone,
       whatsappPhone: contactRow?.whatsapp_phone,

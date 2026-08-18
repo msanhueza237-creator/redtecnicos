@@ -10,10 +10,14 @@ import {
   qualificationAdministratorEmailTemplate,
   qualificationApplicantEmailTemplate,
   qualificationDecisionEmailTemplate,
+  identityAdministratorEmailTemplate,
+  identityApplicantEmailTemplate,
+  identityDecisionEmailTemplate,
   reviewInvitationEmailTemplate,
   smtpTestEmailTemplate,
 } from "@/lib/email/templates";
 import { qualificationTypeLabel, type ProfessionalQualificationType } from "@/domain/professional-qualification";
+import { identityDocumentTypeLabel, type IdentityDocumentType } from "@/domain/identity-document";
 import { publicSiteUrl } from "@/lib/site-url";
 
 interface SmtpConfig {
@@ -70,6 +74,20 @@ export interface QualificationDecisionEmailContext {
   applicantEmail: string;
   applicantName: string;
   qualificationTitle: string;
+  decision: "approved" | "changes_requested" | "rejected";
+  reason: string;
+}
+
+export interface IdentitySubmissionEmailContext {
+  applicantEmail: string | null;
+  applicantName: string;
+  professionalName: string;
+  documentType: IdentityDocumentType;
+}
+
+export interface IdentityDecisionEmailContext {
+  applicantEmail: string;
+  applicantName: string;
   decision: "approved" | "changes_requested" | "rejected";
   reason: string;
 }
@@ -308,6 +326,24 @@ export async function sendQualificationDecisionEmail(
   } finally {
     client.close();
   }
+}
+
+export async function sendIdentitySubmissionEmails(context: IdentitySubmissionEmailContext): Promise<"sent" | "partial" | "failed" | "skipped"> {
+  if (!smtpConfig()) return "skipped";
+  const administratorEmail = administratorNotificationEmail();
+  if (!administratorEmail && !context.applicantEmail) return "skipped";
+  const { client, config } = transporter();
+  const input = { applicantName: context.applicantName, professionalName: context.professionalName, documentType: identityDocumentTypeLabel(context.documentType), panelUrl: publicSiteUrl("/panel/identidad"), adminUrl: publicSiteUrl("/admin/documentos") };
+  const deliveries: Array<Promise<unknown>> = [];
+  if (context.applicantEmail) deliveries.push(client.sendMail({ from: { name: config.fromName, address: config.fromEmail }, to: context.applicantEmail, ...identityApplicantEmailTemplate(input) }));
+  if (administratorEmail) deliveries.push(client.sendMail({ from: { name: config.fromName, address: config.fromEmail }, to: administratorEmail, ...(context.applicantEmail ? { replyTo: context.applicantEmail } : {}), ...identityAdministratorEmailTemplate(input) }));
+  try { const results = await Promise.allSettled(deliveries); const sent = results.filter((result) => result.status === "fulfilled").length; return sent === results.length ? "sent" : sent ? "partial" : "failed"; } finally { client.close(); }
+}
+
+export async function sendIdentityDecisionEmail(context: IdentityDecisionEmailContext): Promise<SingleMailDeliveryResult> {
+  if (!smtpConfig()) return "skipped";
+  const { client, config } = transporter();
+  try { await client.sendMail({ from: { name: config.fromName, address: config.fromEmail }, to: context.applicantEmail, ...identityDecisionEmailTemplate({ ...context, panelUrl: publicSiteUrl("/panel/identidad") }) }); return "sent"; } catch { return "failed"; } finally { client.close(); }
 }
 
 export async function sendReviewInvitationEmail(context: ReviewInvitationContext): Promise<SingleMailDeliveryResult> {

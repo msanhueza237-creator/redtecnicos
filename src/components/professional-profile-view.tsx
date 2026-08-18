@@ -16,6 +16,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { ContactPreview } from "@/components/contact-preview";
+import { ProfessionalAvatar } from "@/components/professional-avatar";
 import { categoryLabels } from "@/data/demo-professionals";
 import type { Professional, VerificationBadge } from "@/domain/directory";
 
@@ -48,7 +49,7 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
           </nav>
           <div className="profile-hero-grid">
             <div className="profile-main-identity">
-              <div className="avatar profile-avatar" aria-hidden="true">{professional.initials}</div>
+              <ProfessionalAvatar className="avatar profile-avatar" imageUrl={professional.avatarUrl} initials={professional.initials} name={professional.displayName} sizes="84px" />
               <div>
                 <span className="demo-pill">{professional.isDemo ? `Perfil de demostración — ${professional.kind === "company" ? "empresa" : "técnico"} ficticio` : professional.status === "verified" ? "Perfil verificado" : "Perfil publicado"}</span>
                 <h1>{professional.displayName}</h1>
@@ -106,7 +107,24 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
                   <span key={service}><Wrench size={17} aria-hidden="true" /> {service}</span>
                 ))}
               </div>
+              {professional.specialties.length ? <><h3>Especialidades declaradas</h3><div className="chip-row">{professional.specialties.map((item) => <span className="service-chip" key={item}>{item}</span>)}</div></> : null}
+              {professional.brands?.length ? <><h3>Marcas con experiencia</h3><div className="chip-row">{professional.brands.map((item) => <span className="service-chip" key={item}>{item}</span>)}</div></> : null}
+              {professional.equipmentTypes?.length ? <><h3>Equipos que atiende</h3><div className="chip-row">{professional.equipmentTypes.map((item) => <span className="service-chip" key={item}>{item}</span>)}</div></> : null}
             </section>
+
+            {(professional.workingHours || professional.issuesInvoice || professional.issuesReceipt || professional.writtenQuotes || professional.declaredWarranty || professional.paymentMethods?.length) ? (
+              <section className="profile-block" aria-labelledby="commercial-title">
+                <h2 id="commercial-title">Disponibilidad y condiciones declaradas</h2>
+                <div className="facts-grid">
+                  <div><span>Horario habitual</span><strong>{professional.workingHours || "Coordinar directamente"}</strong></div>
+                  <div><span>Emergencias</span><strong>{professional.emergencyAvailable ? "Disponible" : "No informada"}</strong></div>
+                  <div><span>Documentos tributarios</span><strong>{[professional.issuesInvoice && "Factura", professional.issuesReceipt && "Boleta"].filter(Boolean).join(" · ") || "No informado"}</strong></div>
+                  <div><span>Presupuesto escrito</span><strong>{professional.writtenQuotes ? "Sí" : "No informado"}</strong></div>
+                </div>
+                {professional.paymentMethods?.length ? <p><strong>Medios de pago:</strong> {professional.paymentMethods.join(" · ")}</p> : null}
+                {professional.declaredWarranty ? <p><strong>Garantía declarada:</strong> {professional.declaredWarranty}</p> : null}
+              </section>
+            ) : null}
 
             <section className="profile-block" aria-labelledby="coverage-title">
               <h2 id="coverage-title">Cobertura declarada</h2>
@@ -160,6 +178,21 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
                 <div className="review-score"><strong>{professional.rating.toFixed(1)}</strong><span>de 5</span></div>
                 <div><div className="rating"><Star size={17} fill="currentColor" aria-hidden="true" /> {professional.isDemo ? "Calificación simulada" : "Calificación verificada"}</div><p>Solo puede evaluar quien tenga una solicitud completada y el correo de contacto verificado.</p></div>
               </div>
+              {professional.reviews?.length ? (
+                <div className="certificate-list">
+                  {professional.reviews.map((review) => (
+                    <article key={review.id}>
+                      <span className="icon-box"><Star size={20} fill="currentColor" aria-hidden="true" /></span>
+                      <div>
+                        <strong>{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)} · {review.service}</strong>
+                        <p>“{review.comment}”</p>
+                        <span className="qualification-type">{review.commune} · evaluación verificada{review.wouldRecommend ? " · lo recomienda" : ""}</span>
+                        {review.professionalReply ? <p><strong>Respuesta del profesional:</strong> {review.professionalReply}</p> : null}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : <p className="muted-copy">Este perfil aún no tiene comentarios publicados.</p>}
             </section>
 
             <div className="legal-note">
@@ -177,6 +210,7 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
               services={professional.services}
               communes={professional.communes}
               isDemo={professional.isDemo}
+              acceptsNewRequests={professional.acceptsNewRequests}
             />
           </aside>
         </div>

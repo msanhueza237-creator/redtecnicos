@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { FileLock2, ShieldCheck } from "lucide-react";
 import { QualificationModerationForm } from "@/components/admin/qualification-moderation-form";
+import { IdentityModerationForm } from "@/components/admin/identity-moderation-form";
 import { AdminDemoNotice, AdminOperationalNotice, AdminPageHeading, AdminStatus, AdminTableCard } from "@/components/admin/admin-ui";
 import { DemoAction } from "@/components/admin/demo-action";
 import { adminDocuments, statusTone } from "@/data/admin-demo";
 import { qualificationTypeLabel } from "@/domain/professional-qualification";
+import { identityDocumentTypeLabel } from "@/domain/identity-document";
+import { adminIdentityStatusTone, listAdminIdentityDocuments } from "@/lib/admin/identity-documents";
 import { adminQualificationStatusLabel, adminQualificationStatusTone, listAdminQualificationDocuments } from "@/lib/admin/qualifications";
 import { isSupabaseAuthMode } from "@/lib/supabase/config";
 import styles from "./admin-documents.module.css";
@@ -22,12 +25,28 @@ function formatFileSize(bytes: number): string {
 
 export default async function DocumentsPage() {
   if (isSupabaseAuthMode()) {
-    const result = await listAdminQualificationDocuments();
+    const [result, identityResult] = await Promise.all([listAdminQualificationDocuments(), listAdminIdentityDocuments()]);
     return (
       <section className="admin-page">
         <AdminPageHeading eyebrow="Operación real" title="Documentos" description="Revisa títulos, certificaciones y capacitaciones sin exponer sus archivos al sitio público." />
         <AdminOperationalNotice>Los archivos se abren mediante enlaces privados de cinco minutos. La aprobación exige análisis antivirus limpio, motivo y sesión administrativa.</AdminOperationalNotice>
-        {result.error ? <p className="auth-message" role="alert">{result.error}</p> : null}
+        {result.error || identityResult.error ? <p className="auth-message" role="alert">{result.error ?? identityResult.error}</p> : null}
+        <h2>Identidad y empresas</h2>
+        <div className={styles.grid}>
+          {identityResult.data.map((document) => (
+            <article className={styles.card} key={document.id}>
+              <div className={styles.heading}><div><span className={styles.type}>{identityDocumentTypeLabel(document.documentType)}</span><h2>{document.subjectName}</h2></div><AdminStatus tone={adminIdentityStatusTone(document.status)}>{adminQualificationStatusLabel(document.status)}</AdminStatus></div>
+              <p className={styles.owner}>{document.owner}</p>
+              <dl className={styles.details}><div><dt>Archivo</dt><dd>{document.originalFileName} · {formatFileSize(document.fileSizeBytes)}</dd></div><div><dt>Recepción</dt><dd>{dateFormatter.format(new Date(document.createdAt))}</dd></div></dl>
+              <div className={styles.security}><ShieldCheck aria-hidden="true" size={17} /><span>Archivo privado con firma, MIME y análisis antivirus validados.</span></div>
+              {document.reviewReason ? <p className={styles.reason}><strong>Último motivo:</strong> {document.reviewReason}</p> : null}
+              <div className={styles.actions}>{document.hasDocument ? <a className="button button-secondary" href={`/api/v1/profiles/identity/${document.id}/document`} rel="noreferrer" target="_blank">Abrir identidad privada</a> : null}</div>
+              <IdentityModerationForm documentId={document.id} securityValidated={document.scanStatus === "clean" && document.hasDocument} status={document.status} />
+            </article>
+          ))}
+        </div>
+        {!identityResult.data.length && !identityResult.error ? <div className="admin-empty-state"><strong>Aún no hay verificaciones de identidad</strong><p>Los documentos privados enviados aparecerán aquí.</p></div> : null}
+        <h2>Formación y capacitaciones</h2>
         <div className={styles.grid}>
           {result.data.map((document) => (
             <article className={styles.card} key={document.id}>

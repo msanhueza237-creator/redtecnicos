@@ -6,6 +6,7 @@ import type {
   Professional,
   ProfessionalCategory,
   ProfessionalKind,
+  PublicProfileReview,
   Qualification,
   VerificationBadge,
 } from "@/domain/directory";
@@ -37,6 +38,17 @@ interface DirectoryRow {
   badges: string[];
   qualifications: unknown;
   portfolio: unknown;
+  avatar_path: string | null;
+  accepts_new_requests: boolean;
+  emergency_available: boolean;
+  working_hours: string;
+  brands: string[];
+  equipment_types: string[];
+  issues_invoice: boolean;
+  issues_receipt: boolean;
+  written_quotes: boolean;
+  declared_warranty: string;
+  payment_methods: string[];
   is_verified: boolean;
   is_demo: boolean;
 }
@@ -80,6 +92,17 @@ const directoryColumns = [
   "badges",
   "qualifications",
   "portfolio",
+  "avatar_path",
+  "accepts_new_requests",
+  "emergency_available",
+  "working_hours",
+  "brands",
+  "equipment_types",
+  "issues_invoice",
+  "issues_receipt",
+  "written_quotes",
+  "declared_warranty",
+  "payment_methods",
   "is_verified",
   "is_demo",
 ].join(",");
@@ -160,6 +183,14 @@ async function signedPortfolioUrls(
   return new Map(data.flatMap((item) => typeof item.path === "string" && item.signedUrl ? [[item.path, item.signedUrl] as const] : []));
 }
 
+async function signedAvatarUrls(supabase: SupabaseClient, rows: DirectoryRow[]): Promise<Map<string, string>> {
+  const paths = [...new Set(rows.flatMap((row) => row.avatar_path ? [row.avatar_path] : []))];
+  if (!paths.length) return new Map();
+  const { data, error } = await supabase.storage.from("profile-images").createSignedUrls(paths, 60 * 60);
+  if (error || !data) return new Map();
+  return new Map(data.flatMap((item) => typeof item.path === "string" && item.signedUrl ? [[item.path, item.signedUrl] as const] : []));
+}
+
 function mapPortfolio(value: unknown, signedUrls: Map<string, string>): PortfolioItem[] {
   if (!Array.isArray(value)) return [];
 
@@ -191,8 +222,8 @@ function mapPortfolio(value: unknown, signedUrls: Map<string, string>): Portfoli
     }));
 }
 
-function mapRow(row: DirectoryRow, signedUrls: Map<string, string>): Professional {
-  const availability = ["Disponible esta semana", "Agenda limitada", "Solo emergencias"].includes(row.availability ?? "")
+function mapRow(row: DirectoryRow, signedUrls: Map<string, string>, avatarUrls: Map<string, string>): Professional {
+  const availability = ["Disponible esta semana", "Agenda limitada", "Solo emergencias", "No disponible temporalmente"].includes(row.availability ?? "")
     ? row.availability as Professional["availability"]
     : "Agenda limitada";
 
@@ -223,6 +254,17 @@ function mapRow(row: DirectoryRow, signedUrls: Map<string, string>): Professiona
     badges: row.badges.filter((badge): badge is VerificationBadge => publicBadges.has(badge as VerificationBadge)),
     qualifications: parseQualifications(row.qualifications, row.profile_id),
     portfolio: mapPortfolio(row.portfolio, signedUrls),
+    ...(row.avatar_path && avatarUrls.get(row.avatar_path) ? { avatarUrl: avatarUrls.get(row.avatar_path) } : {}),
+    acceptsNewRequests: row.accepts_new_requests,
+    emergencyAvailable: row.emergency_available,
+    workingHours: row.working_hours ?? "",
+    brands: row.brands ?? [],
+    equipmentTypes: row.equipment_types ?? [],
+    issuesInvoice: row.issues_invoice,
+    issuesReceipt: row.issues_receipt,
+    writtenQuotes: row.written_quotes,
+    declaredWarranty: row.declared_warranty ?? "",
+    paymentMethods: row.payment_methods ?? [],
     status: row.is_verified ? "verified" : "approved",
     isDemo: row.is_demo,
   };
@@ -243,7 +285,34 @@ export async function listDirectoryProfessionals(): Promise<Professional[]> {
   if (error) throw new Error("No fue posible consultar el directorio público.", { cause: error });
   const rows = (data ?? []) as unknown as DirectoryRow[];
   const signedUrls = await signedPortfolioUrls(supabase, rows);
-  return rows.map((row) => mapRow(row, signedUrls));
+  const avatarUrls = await signedAvatarUrls(supabase, rows);
+  return rows.map((row) => mapRow(row, signedUrls, avatarUrls));
+}
+
+interface PublicReviewRow {
+  review_id: string;
+  review_rating: number;
+  review_comment: string;
+  would_recommend: boolean;
+  requester_commune: string;
+  requested_service: string;
+  professional_reply: string | null;
+  replied_at: string | null;
+  published_at: string;
+}
+
+function mapPublicReview(row: PublicReviewRow): PublicProfileReview {
+  return {
+    id: row.review_id,
+    rating: row.review_rating,
+    comment: row.review_comment,
+    wouldRecommend: row.would_recommend,
+    commune: row.requester_commune,
+    service: row.requested_service,
+    ...(row.professional_reply ? { professionalReply: row.professional_reply } : {}),
+    ...(row.replied_at ? { repliedAt: row.replied_at } : {}),
+    publishedAt: row.published_at,
+  };
 }
 
 export async function getDirectoryProfessional(slug: string): Promise<Professional | undefined> {
@@ -261,6 +330,12 @@ export async function getDirectoryProfessional(slug: string): Promise<Profession
   if (error) throw new Error("No fue posible consultar el perfil público.", { cause: error });
   if (!data) return undefined;
   const row = data as unknown as DirectoryRow;
-  const signedUrls = await signedPortfolioUrls(supabase, [row]);
-  return mapRow(row, signedUrls);
+  const [signedUrls, avatarUrls, reviewResult] = await Promise.all([
+    signedPortfolioUrls(supabase, [row]),
+    signedAvatarUrls(supabase, [row]),
+    supabase.rpc("list_public_profile_reviews", { p_profile_id: row.profile_id, p_limit: 20 }),
+  ]);
+  const professional = mapRow(row, signedUrls, avatarUrls);
+  if (!reviewResult.error) professional.reviews = ((reviewResult.data ?? []) as unknown as PublicReviewRow[]).map(mapPublicReview);
+  return professional;
 }

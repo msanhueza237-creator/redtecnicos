@@ -41,6 +41,7 @@ export default async function ApplicationDetailPage({ params }: Props) {
         <div className="admin-detail-grid">
           <div className="admin-stack">
             <AdminCard title="Perfil declarado" description="Información enviada durante el registro breve">
+              {liveApplication.avatarUrl ? <div className="admin-gallery-preview"><article><div><Image alt={`Fotografía profesional de ${liveApplication.displayName}`} fill sizes="220px" src={liveApplication.avatarUrl} /></div><strong>Fotografía o logotipo</strong><span>Archivo privado pendiente o aprobado</span></article></div> : null}
               <p className="admin-card-copy">{liveApplication.summary}</p>
               <dl className="admin-info-list">
                 <div><dt>Categoría</dt><dd>{categoryLabel}</dd></div>
@@ -48,10 +49,20 @@ export default async function ApplicationDetailPage({ params }: Props) {
                 <div><dt>Experiencia declarada</dt><dd>{liveApplication.yearsExperience} años</dd></div>
                 <div><dt>Modalidad</dt><dd>{liveApplication.modalities.join(", ")}</dd></div>
                 <div><dt>Vehículo</dt><dd>{liveApplication.hasVehicle ? "Sí" : "No"}</dd></div>
+                <div><dt>Disponibilidad</dt><dd>{liveApplication.availability}</dd></div>
+                <div><dt>Horario</dt><dd>{liveApplication.workingHours || "No informado"}</dd></div>
+                <div><dt>Nuevas solicitudes</dt><dd>{liveApplication.acceptsNewRequests ? "Sí" : "Pausadas"}</dd></div>
+                <div><dt>Emergencias</dt><dd>{liveApplication.emergencyAvailable ? "Sí" : "No"}</dd></div>
               </dl>
             </AdminCard>
             <AdminCard title="Servicios" description={`${liveApplication.services.length} servicios declarados`}>
               <div className="admin-chip-list">{liveApplication.services.map((service) => <span key={service}>{service}</span>)}</div>
+              {liveApplication.specialties.length ? <><p className="admin-card-copy"><strong>Especialidades</strong></p><div className="admin-chip-list">{liveApplication.specialties.map((item) => <span key={item}>{item}</span>)}</div></> : null}
+              {liveApplication.brands.length ? <><p className="admin-card-copy"><strong>Marcas</strong></p><div className="admin-chip-list">{liveApplication.brands.map((item) => <span key={item}>{item}</span>)}</div></> : null}
+              {liveApplication.equipmentTypes.length ? <><p className="admin-card-copy"><strong>Equipos</strong></p><div className="admin-chip-list">{liveApplication.equipmentTypes.map((item) => <span key={item}>{item}</span>)}</div></> : null}
+            </AdminCard>
+            <AdminCard title="Condiciones comerciales declaradas" description="Información que será visible solo después de aprobar el perfil">
+              <dl className="admin-info-list"><div><dt>Factura</dt><dd>{liveApplication.issuesInvoice ? "Sí" : "No informada"}</dd></div><div><dt>Boleta</dt><dd>{liveApplication.issuesReceipt ? "Sí" : "No informada"}</dd></div><div><dt>Presupuesto escrito</dt><dd>{liveApplication.writtenQuotes ? "Sí" : "No informado"}</dd></div><div><dt>Medios de pago</dt><dd>{liveApplication.paymentMethods.join(", ") || "No informados"}</dd></div><div><dt>Garantía</dt><dd>{liveApplication.declaredWarranty || "No informada"}</dd></div></dl>
             </AdminCard>
             <AdminCard title="Contacto privado" description="Disponible solo para gestión y moderación">
               <dl className="admin-info-list">
@@ -73,6 +84,7 @@ export default async function ApplicationDetailPage({ params }: Props) {
                 <li><MailCheck aria-hidden="true" size={16} /> Cuenta de correo creada</li>
                 <li><PhoneCall aria-hidden="true" size={16} /> Celular informado</li>
                 <li><ShieldCheck aria-hidden="true" size={16} /> Consentimiento versionado registrado</li>
+                <li><ShieldCheck aria-hidden="true" size={16} /> Identidad {liveApplication.identityVerified ? "revisada" : "pendiente o no enviada"}</li>
               </ul>
               <p className="admin-card-copy" style={{ marginTop: 14 }}>Aprobar el perfil no certifica identidad, títulos ni calidad de servicio. Esas señales se revisan por separado.</p>
             </AdminCard>

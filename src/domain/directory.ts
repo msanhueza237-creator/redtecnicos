@@ -90,6 +90,18 @@ export interface Qualification {
   reviewedAt: string;
 }
 
+export interface PublicProfileReview {
+  id: string;
+  rating: number;
+  comment: string;
+  wouldRecommend: boolean;
+  commune: string;
+  service: string;
+  professionalReply?: string;
+  repliedAt?: string;
+  publishedAt: string;
+}
+
 export interface Professional {
   id: string;
   slug: string;
@@ -107,13 +119,25 @@ export interface Professional {
   rating: number;
   reviewCount: number;
   score: number;
-  availability: "Disponible esta semana" | "Agenda limitada" | "Solo emergencias";
+  availability: "Disponible esta semana" | "Agenda limitada" | "Solo emergencias" | "No disponible temporalmente";
   responseTime: string;
   modalities: Array<"Domiciliaria" | "Comercial" | "Taller" | "Diagnóstico remoto inicial">;
   vehicle: boolean;
   badges: VerificationBadge[];
   qualifications: Qualification[];
   portfolio: PortfolioItem[];
+  avatarUrl?: string;
+  acceptsNewRequests?: boolean;
+  emergencyAvailable?: boolean;
+  workingHours?: string;
+  brands?: string[];
+  equipmentTypes?: string[];
+  issuesInvoice?: boolean;
+  issuesReceipt?: boolean;
+  writtenQuotes?: boolean;
+  declaredWarranty?: string;
+  paymentMethods?: string[];
+  reviews?: PublicProfileReview[];
   status: Extract<ProfileStatus, "approved" | "verified">;
   isDemo: boolean;
 }
@@ -133,6 +157,7 @@ export const directoryFiltersSchema = z.object({
     z.literal("Disponible esta semana"),
     z.literal("Agenda limitada"),
     z.literal("Solo emergencias"),
+    z.literal("No disponible temporalmente"),
   ]).default(""),
   modality: z.union([
     z.literal(""),
