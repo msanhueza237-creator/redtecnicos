@@ -12,11 +12,10 @@ import type {
 } from "@/domain/directory";
 import { MAX_GALLERY_ITEMS } from "@/domain/professional-gallery";
 import { regionNameFromCode } from "@/domain/professional-registration";
-import { createPrivilegedClient } from "@/lib/supabase/admin";
 import { isSupabaseMode } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
-type StorageSigningClient = ReturnType<typeof createPrivilegedClient>;
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 interface DirectoryRow {
   profile_id: string;
@@ -170,7 +169,7 @@ function initialsFor(displayName: string): string {
 }
 
 async function signedPortfolioUrls(
-  supabase: StorageSigningClient,
+  supabase: SupabaseClient,
   rows: DirectoryRow[],
 ): Promise<Map<string, string>> {
   const paths = [...new Set(rows.flatMap((row) =>
@@ -185,7 +184,7 @@ async function signedPortfolioUrls(
   return new Map(data.flatMap((item) => typeof item.path === "string" && item.signedUrl ? [[item.path, item.signedUrl] as const] : []));
 }
 
-async function signedAvatarUrls(supabase: StorageSigningClient, rows: DirectoryRow[]): Promise<Map<string, string>> {
+async function signedAvatarUrls(supabase: SupabaseClient, rows: DirectoryRow[]): Promise<Map<string, string>> {
   const paths = [...new Set(rows.flatMap((row) => row.avatar_path ? [row.avatar_path] : []))];
   if (!paths.length) return new Map();
   const { data, error } = await supabase.storage.from("profile-images").createSignedUrls(paths, 60 * 60);
@@ -286,9 +285,8 @@ export async function listDirectoryProfessionals(): Promise<Professional[]> {
 
   if (error) throw new Error("No fue posible consultar el directorio público.", { cause: error });
   const rows = (data ?? []) as unknown as DirectoryRow[];
-  const storage = createPrivilegedClient();
-  const signedUrls = await signedPortfolioUrls(storage, rows);
-  const avatarUrls = await signedAvatarUrls(storage, rows);
+  const signedUrls = await signedPortfolioUrls(supabase, rows);
+  const avatarUrls = await signedAvatarUrls(supabase, rows);
   return rows.map((row) => mapRow(row, signedUrls, avatarUrls));
 }
 
@@ -333,10 +331,9 @@ export async function getDirectoryProfessional(slug: string): Promise<Profession
   if (error) throw new Error("No fue posible consultar el perfil público.", { cause: error });
   if (!data) return undefined;
   const row = data as unknown as DirectoryRow;
-  const storage = createPrivilegedClient();
   const [signedUrls, avatarUrls, reviewResult] = await Promise.all([
-    signedPortfolioUrls(storage, [row]),
-    signedAvatarUrls(storage, [row]),
+    signedPortfolioUrls(supabase, [row]),
+    signedAvatarUrls(supabase, [row]),
     supabase.rpc("list_public_profile_reviews", { p_profile_id: row.profile_id, p_limit: 20 }),
   ]);
   const professional = mapRow(row, signedUrls, avatarUrls);

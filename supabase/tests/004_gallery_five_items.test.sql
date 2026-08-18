@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(3);
+select plan(6);
 
 select ok(
   exists(
@@ -30,6 +30,34 @@ select ok(
 select ok(
   lower(pg_get_functiondef('public.moderate_portfolio_item(uuid,text,text)'::regprocedure)) like '%limit 5%',
   'La moderación proyecta como máximo cinco trabajos revisados'
+);
+
+select has_function(
+  'private',
+  'is_public_profile_asset',
+  array['text', 'text'],
+  'Existe la autorización segura de imágenes públicas'
+);
+
+select function_privs_are(
+  'private',
+  'is_public_profile_asset',
+  array['text', 'text'],
+  'anon',
+  array['EXECUTE'],
+  'anon solo puede consultar si un activo está aprobado'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'storage_approved_gallery_read'
+      and qual ilike '%is_public_profile_asset%'
+  ),
+  'Storage valida la publicación mediante la función segura'
 );
 
 select * from finish();
