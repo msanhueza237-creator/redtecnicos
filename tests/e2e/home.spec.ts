@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("landing communicates the directory model and offers working navigation", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1, name: /El técnico en refrigeración correcto/i })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Encuentra técnicos de refrigeración y climatización/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Tres áreas, una misma red profesional" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Decide con información antes de contratar" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Explorar el directorio" })).toHaveAttribute("href", "/tecnicos");
@@ -21,16 +21,17 @@ test("landing communicates the directory model and offers working navigation", a
 test("landing metrics are calculated from fixtures and not zero", async ({ page }) => {
   await page.goto("/");
   const metrics = page.locator(".landing-metrics");
-  await expect(metrics.locator("strong")).toHaveText(["10", "29", "149", "4.8"]);
-  await expect(metrics).toContainText("Evaluaciones demo");
+  await expect(metrics.locator("strong")).toHaveText(["10", "29", "3", "4.8"]);
+  await expect(metrics).toContainText("149 evaluaciones demo");
 });
 
 test("published profile cards preview up to three approved works", async ({ page }) => {
   await page.goto("/");
   const cards = page.locator(".profile-card");
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(4);
   await expect(cards.first().locator(".profile-card-gallery-image")).toHaveCount(3);
   await expect(cards.first().locator(".profile-card-gallery-label")).toContainText("3 trabajos destacados");
+  await expect(cards.first()).not.toContainText("Nivel de revisión");
 });
 
 test("landing does not use prohibited guarantee language", async ({ page }) => {

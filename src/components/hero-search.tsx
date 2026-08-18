@@ -3,10 +3,12 @@ import { categoryLabels, chileRegions } from "@/data/demo-professionals";
 
 export function HeroSearch() {
   return (
-    <aside className="hero-card" aria-label="Buscar técnicos">
-      <h2>Comienza tu búsqueda</h2>
-      <p>Describe lo que necesitas y filtra por especialidad y ubicación.</p>
-      <form className="search-form" action="/tecnicos" method="get">
+    <aside className="hero-card landing-search-card" aria-label="Buscar técnicos">
+      <div className="landing-search-heading">
+        <h2>¿Qué servicio necesitas?</h2>
+        <p>Busca en todo Chile.</p>
+      </div>
+      <form className="search-form landing-search-form" action="/tecnicos" method="get">
         <div className="field">
           <label htmlFor="hero-query">¿Qué necesitas?</label>
           <input className="input" id="hero-query" name="query" type="search" placeholder="Ej. cámara de frío, split o chiller" />

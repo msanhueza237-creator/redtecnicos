@@ -10,8 +10,10 @@ import {
   CircleGauge,
   FileCheck2,
   GraduationCap,
+  Images,
   Info,
   MapPin,
+  MessageCircleMore,
   Star,
   Wrench,
 } from "lucide-react";
@@ -37,6 +39,14 @@ const badgeIcons: Record<VerificationBadge, typeof CheckCircle2> = {
 
 export function ProfessionalProfileView({ professional }: { professional: Professional }) {
   const typeLabel = professional.kind === "company" ? "Empresa" : "Técnico independiente";
+  const featuredWork = professional.portfolio[0];
+  const hasCommercialFacts = Boolean(
+    professional.workingHours ||
+    professional.emergencyAvailable ||
+    professional.issuesInvoice ||
+    professional.issuesReceipt ||
+    professional.writtenQuotes,
+  );
 
   return (
     <>
@@ -66,14 +76,22 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
                 </div>
               </div>
             </div>
-            <div className="profile-metrics" aria-label="Resumen del perfil">
-              <div>
-                <strong><Star size={18} fill="currentColor" aria-hidden="true" /> {professional.rating.toFixed(1)}</strong>
-                <span>{professional.reviewCount} evaluaciones publicadas</span>
-              </div>
-              <div>
-                <strong>{professional.score}/100</strong>
-                <span>Nivel de completitud y revisión</span>
+            <div className="profile-hero-summary" aria-label="Resumen del perfil">
+              {featuredWork ? (
+                <Link className="profile-hero-work" href="#portfolio">
+                  <Image alt={featuredWork.alt} fill loading="eager" sizes="(max-width: 980px) 100vw, 380px" src={featuredWork.imageSrc} />
+                  <span><Images size={16} aria-hidden="true" /> Ver {professional.portfolio.length === 1 ? "trabajo publicado" : `${professional.portfolio.length} trabajos publicados`}</span>
+                </Link>
+              ) : null}
+              <div className="profile-proof-summary">
+                <div><strong>{professional.yearsExperience} años</strong><span>Experiencia declarada</span></div>
+                {professional.reviewCount > 0 ? (
+                  <div><strong><Star size={17} fill="currentColor" aria-hidden="true" /> {professional.rating.toFixed(1)}</strong><span>{professional.reviewCount} evaluaciones publicadas</span></div>
+                ) : professional.portfolio.length > 0 ? (
+                  <div><strong>{professional.portfolio.length}</strong><span>{professional.portfolio.length === 1 ? "Trabajo publicado" : "Trabajos publicados"}</span></div>
+                ) : (
+                  <div><strong>Directo</strong><span>Contacto con el profesional</span></div>
+                )}
               </div>
             </div>
           </div>
@@ -89,6 +107,26 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
       <section className="section profile-section">
         <div className="container profile-layout">
           <div className="profile-content">
+            {professional.portfolio.length > 0 ? (
+              <section className="profile-block profile-portfolio-featured" id="portfolio" aria-labelledby="portfolio-title">
+                <div className="profile-block-heading">
+                  <div>
+                    <span className="eyebrow">Trabajos publicados</span>
+                    <h2 id="portfolio-title">Conoce parte de su experiencia</h2>
+                    <p>{professional.isDemo ? "Imágenes ilustrativas de demostración; no corresponden a trabajos atribuibles a una persona real." : "Fotografías declaradas por el profesional y aprobadas para publicación."}</p>
+                  </div>
+                </div>
+                <div className="portfolio-grid">
+                  {professional.portfolio.map((item) => (
+                    <article className="portfolio-item" key={item.id}>
+                      <Image alt={item.alt} height={512} sizes="(max-width: 700px) 100vw, 33vw" src={item.imageSrc} width={768} />
+                      <div><strong>{item.title}</strong><span>{item.category}{professional.isDemo ? " · Demostración" : ""}</span></div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
             <section className="profile-block" aria-labelledby="presentacion-title">
               <h2 id="presentacion-title">Presentación profesional</h2>
               <p>{professional.summary}</p>
@@ -112,15 +150,17 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
               {professional.equipmentTypes?.length ? <><h3>Equipos que atiende</h3><div className="chip-row">{professional.equipmentTypes.map((item) => <span className="service-chip" key={item}>{item}</span>)}</div></> : null}
             </section>
 
-            {(professional.workingHours || professional.issuesInvoice || professional.issuesReceipt || professional.writtenQuotes || professional.declaredWarranty || professional.paymentMethods?.length) ? (
+            {(hasCommercialFacts || professional.declaredWarranty || professional.paymentMethods?.length) ? (
               <section className="profile-block" aria-labelledby="commercial-title">
                 <h2 id="commercial-title">Disponibilidad y condiciones declaradas</h2>
-                <div className="facts-grid">
-                  <div><span>Horario habitual</span><strong>{professional.workingHours || "Coordinar directamente"}</strong></div>
-                  <div><span>Emergencias</span><strong>{professional.emergencyAvailable ? "Disponible" : "No informada"}</strong></div>
-                  <div><span>Documentos tributarios</span><strong>{[professional.issuesInvoice && "Factura", professional.issuesReceipt && "Boleta"].filter(Boolean).join(" · ") || "No informado"}</strong></div>
-                  <div><span>Presupuesto escrito</span><strong>{professional.writtenQuotes ? "Sí" : "No informado"}</strong></div>
-                </div>
+                {hasCommercialFacts ? (
+                  <div className="facts-grid">
+                    {professional.workingHours ? <div><span>Horario habitual</span><strong>{professional.workingHours}</strong></div> : null}
+                    {professional.emergencyAvailable ? <div><span>Emergencias</span><strong>Disponible</strong></div> : null}
+                    {(professional.issuesInvoice || professional.issuesReceipt) ? <div><span>Documentos tributarios</span><strong>{[professional.issuesInvoice && "Factura", professional.issuesReceipt && "Boleta"].filter(Boolean).join(" · ")}</strong></div> : null}
+                    {professional.writtenQuotes ? <div><span>Presupuesto escrito</span><strong>Sí</strong></div> : null}
+                  </div>
+                ) : null}
                 {professional.paymentMethods?.length ? <p><strong>Medios de pago:</strong> {professional.paymentMethods.join(" · ")}</p> : null}
                 {professional.declaredWarranty ? <p><strong>Garantía declarada:</strong> {professional.declaredWarranty}</p> : null}
               </section>
@@ -134,9 +174,9 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
               </div>
             </section>
 
-            <section className="profile-block" aria-labelledby="qualifications-title">
-              <h2 id="qualifications-title">Formación y capacitaciones revisadas</h2>
-              {professional.qualifications.length > 0 ? (
+            {professional.qualifications.length > 0 ? (
+              <section className="profile-block" aria-labelledby="qualifications-title">
+                <h2 id="qualifications-title">Formación y capacitaciones revisadas</h2>
                 <div className="certificate-list">
                   {professional.qualifications.map((qualification) => (
                     <article key={qualification.id}>
@@ -149,35 +189,17 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
                     </article>
                   ))}
                 </div>
-              ) : (
-                <p className="muted-copy">Este perfil todavía no muestra formación revisada.</p>
-              )}
-            </section>
-
-            <section className="profile-block" aria-labelledby="portfolio-title">
-              <div className="profile-block-heading">
-                <div>
-                  <h2 id="portfolio-title">Trabajos realizados</h2>
-                  <p>{professional.isDemo ? "Imágenes ilustrativas de demostración; no corresponden a trabajos atribuibles a una persona real." : "Fotografías declaradas por el profesional y aprobadas para publicación."}</p>
-                </div>
-                <span className="professional-panel-status is-approved">{professional.portfolio.length}/5 revisadas</span>
-              </div>
-              <div className="portfolio-grid">
-                {professional.portfolio.map((item) => (
-                  <article className="portfolio-item" key={item.id}>
-                    <Image alt={item.alt} height={512} sizes="(max-width: 700px) 100vw, 33vw" src={item.imageSrc} width={768} />
-                    <div><strong>{item.title}</strong><span>{item.category}{professional.isDemo ? " · Demostración" : ""}</span></div>
-                  </article>
-                ))}
-              </div>
-            </section>
+              </section>
+            ) : null}
 
             <section className="profile-block" aria-labelledby="reviews-title">
               <h2 id="reviews-title">Evaluaciones asociadas a solicitudes completadas</h2>
-              <div className="review-preview">
-                <div className="review-score"><strong>{professional.rating.toFixed(1)}</strong><span>de 5</span></div>
-                <div><div className="rating"><Star size={17} fill="currentColor" aria-hidden="true" /> {professional.isDemo ? "Calificación simulada" : "Calificación verificada"}</div><p>Solo puede evaluar quien tenga una solicitud completada y el correo de contacto verificado.</p></div>
-              </div>
+              {professional.reviewCount > 0 ? (
+                <div className="review-preview">
+                  <div className="review-score"><strong>{professional.rating.toFixed(1)}</strong><span>de 5</span></div>
+                  <div><div className="rating"><Star size={17} fill="currentColor" aria-hidden="true" /> {professional.isDemo ? "Calificación simulada" : "Calificación verificada"}</div><p>Solo puede evaluar quien tenga una solicitud completada y el correo de contacto verificado.</p></div>
+                </div>
+              ) : null}
               {professional.reviews?.length ? (
                 <div className="certificate-list">
                   {professional.reviews.map((review) => (
@@ -215,6 +237,11 @@ export function ProfessionalProfileView({ professional }: { professional: Profes
           </aside>
         </div>
       </section>
+      {professional.acceptsNewRequests !== false ? (
+        <Link className="profile-mobile-contact-cta" href="#contacto">
+          <MessageCircleMore size={19} aria-hidden="true" /> Solicitar contacto
+        </Link>
+      ) : null}
     </>
   );
 }

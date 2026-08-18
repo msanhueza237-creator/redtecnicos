@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, Building2, GraduationCap, Images, MapPin, Star, UserRound, Wrench } from "lucide-react";
+import { ArrowRight, BadgeCheck, BriefcaseBusiness, Building2, GraduationCap, Images, MapPin, Star, UserRound, Wrench } from "lucide-react";
 import { categoryLabels } from "@/data/demo-professionals";
 import type { Professional } from "@/domain/directory";
 import { MAX_PUBLIC_GALLERY_PREVIEW_ITEMS } from "@/domain/professional-gallery";
@@ -13,6 +13,8 @@ export function ProfessionalCard({ professional }: { professional: Professional 
   const previewImages = professional.portfolio
     .filter((item) => item.status === "approved")
     .slice(0, MAX_PUBLIC_GALLERY_PREVIEW_ITEMS);
+  const primaryCategory = professional.categories[0] ?? "residential";
+  const visibleBadge = professional.badges[0];
 
   return (
     <article className="profile-card">
@@ -40,11 +42,12 @@ export function ProfessionalCard({ professional }: { professional: Professional 
       ) : (
         <Link
           aria-label={`Ver perfil de ${professional.displayName}`}
-          className="profile-card-gallery is-empty"
+          className={`profile-card-gallery is-empty is-${primaryCategory}`}
           href={profileHref}
         >
-          <Images aria-hidden="true" size={25} />
-          <span>Galería aún sin trabajos aprobados</span>
+          <span className="profile-card-gallery-placeholder-icon"><Wrench aria-hidden="true" size={24} /></span>
+          <strong>{categoryLabels[primaryCategory]}</strong>
+          <small>Perfil profesional publicado</small>
         </Link>
       )}
       <div className="profile-card-body">
@@ -68,9 +71,6 @@ export function ProfessionalCard({ professional }: { professional: Professional 
           <span>
             <BriefcaseBusiness size={15} aria-hidden="true" /> {professional.yearsExperience} años de experiencia declarada
           </span>
-          <span>
-            <Wrench size={15} aria-hidden="true" /> {professional.availability}
-          </span>
         </div>
 
         <div className="profile-category-row" aria-label="Categorías profesionales">
@@ -80,21 +80,23 @@ export function ProfessionalCard({ professional }: { professional: Professional 
         </div>
 
         <div className="chip-row" aria-label="Servicios principales">
-          {professional.services.slice(0, 3).map((service) => (
+          {professional.services.slice(0, 2).map((service) => (
             <span className="service-chip" key={service}>
               {service}
             </span>
           ))}
         </div>
 
-        <div className="card-score-row">
-          <span className="rating" aria-label={`Calificación ${professional.rating} de 5, basada en ${professional.reviewCount} evaluaciones`}>
-            <Star size={16} fill="currentColor" aria-hidden="true" /> {professional.rating.toFixed(1)} ({professional.reviewCount})
-          </span>
-          <span className="score">
-            <strong>{professional.score}/100</strong>
-            <span>Nivel de revisión</span>
-          </span>
+        <div className="card-proof-row">
+          {professional.reviewCount > 0 ? (
+            <span className="rating" aria-label={`Calificación ${professional.rating} de 5, basada en ${professional.reviewCount} evaluaciones`}>
+              <Star size={16} fill="currentColor" aria-hidden="true" /> {professional.rating.toFixed(1)} · {professional.reviewCount} {professional.reviewCount === 1 ? "evaluación" : "evaluaciones"}
+            </span>
+          ) : visibleBadge ? (
+            <span className="profile-card-confidence"><BadgeCheck size={15} aria-hidden="true" /> {visibleBadge}</span>
+          ) : (
+            <span className="profile-card-availability"><Wrench size={15} aria-hidden="true" /> {professional.availability}</span>
+          )}
         </div>
 
         {professional.qualifications[0] ? (

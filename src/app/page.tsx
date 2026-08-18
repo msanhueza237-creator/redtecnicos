@@ -88,8 +88,12 @@ export default async function HomePage() {
     getPublicSiteContentMap(),
   ]);
   const featuredProfessionals = [...professionals]
-    .sort((left, right) => right.score - left.score || right.rating - left.rating)
-    .slice(0, 6);
+    .sort((left, right) =>
+      Number(right.portfolio.length > 0) - Number(left.portfolio.length > 0) ||
+      right.score - left.score ||
+      right.rating - left.rating,
+    )
+    .slice(0, 4);
   const metrics = calculateDirectoryMetrics(professionals);
   const isLive = isSupabaseMode();
   const directoryNotice = siteContent.home_directory_notice;
@@ -128,8 +132,8 @@ export default async function HomePage() {
         <div className="container landing-hero-grid">
           <div className="landing-hero-copy">
             <span className="eyebrow"><span className="eyebrow-dot" aria-hidden="true" /> Red especializada en Chile</span>
-            <h1>El técnico en refrigeración correcto, <span>a un clic de distancia</span></h1>
-            <p>Compara técnicos y empresas de refrigeración industrial, comercial y climatización residencial. Revisa su información y solicita contacto directo.</p>
+            <h1>Encuentra técnicos de <span>refrigeración y climatización</span> en Chile</h1>
+            <p>Busca por servicio y ubicación, compara trabajos publicados y solicita los datos de contacto directamente.</p>
             <div className="hero-trust" aria-label="Características del directorio">
               <span><CheckCircle2 size={17} aria-hidden="true" /> Sin comisiones</span>
               <span><CheckCircle2 size={17} aria-hidden="true" /> Información revisable</span>
@@ -153,8 +157,12 @@ export default async function HomePage() {
         <div className="container landing-metrics" aria-label={isLive ? "Indicadores reales del directorio" : "Indicadores de demostración calculados"}>
           <div><strong>{metrics.profileCount}</strong><span>{isLive ? "Perfiles publicados" : "Perfiles ficticios"}</span></div>
           <div><strong>{metrics.communeCount}</strong><span>Comunas cubiertas</span></div>
-          <div><strong>{metrics.publishedReviewCount}</strong><span>{isLive ? "Evaluaciones publicadas" : "Evaluaciones demo"}</span></div>
-          <div><strong>{metrics.averageRating > 0 ? metrics.averageRating.toFixed(1) : "—"}</strong><span>{isLive ? "Calificación promedio" : "Calificación demo"}</span></div>
+          <div><strong>3</strong><span>Áreas de servicio</span></div>
+          {metrics.publishedReviewCount > 0 ? (
+            <div><strong>{metrics.averageRating.toFixed(1)}</strong><span>{metrics.publishedReviewCount} {isLive ? "evaluaciones publicadas" : "evaluaciones demo"}</span></div>
+          ) : (
+            <div><strong>Directo</strong><span>Contacto con el profesional</span></div>
+          )}
         </div>
       </section>
 
@@ -175,6 +183,18 @@ export default async function HomePage() {
         </section>
       ) : null}
 
+      <section className="section section-subtle" aria-labelledby="featured-title">
+        <div className="container">
+          <div className="section-header">
+            <div><span className="eyebrow">Directorio profesional</span><h2 id="featured-title">Encuentra tu técnico de confianza</h2><p>{isLive ? "Perfiles publicados después de una revisión administrativa de su información." : "Perfiles ficticios preparados para revisar la experiencia."}</p></div>
+            <Link className="button button-secondary" href="/tecnicos">Ver directorio completo <ArrowRight size={16} aria-hidden="true" /></Link>
+          </div>
+          {featuredProfessionals.length > 0 ? <div className="cards-grid landing-profile-grid">
+            {featuredProfessionals.map((professional) => <ProfessionalCard professional={professional} key={professional.id} />)}
+          </div> : <div className="empty-state"><UserRoundSearch size={30} aria-hidden="true" /><h3>Estamos incorporando los primeros perfiles</h3><p>Los técnicos y empresas aparecerán aquí una vez aprobados por administración.</p><Link className="button button-primary" href="/registro-tecnico">Publicar mi perfil</Link></div>}
+        </div>
+      </section>
+
       <section className="section" aria-labelledby="categories-title">
         <div className="container">
           <div className="section-header landing-section-header">
@@ -191,18 +211,6 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="section section-subtle" aria-labelledby="featured-title">
-        <div className="container">
-          <div className="section-header">
-            <div><span className="eyebrow">Directorio profesional</span><h2 id="featured-title">Encuentra tu técnico de confianza</h2><p>{isLive ? "Perfiles publicados después de una revisión administrativa de su información." : "Perfiles ficticios preparados para revisar la experiencia."}</p></div>
-            <Link className="button button-secondary" href="/tecnicos">Ver directorio completo <ArrowRight size={16} aria-hidden="true" /></Link>
-          </div>
-          {featuredProfessionals.length > 0 ? <div className="cards-grid landing-profile-grid">
-            {featuredProfessionals.map((professional) => <ProfessionalCard professional={professional} key={professional.id} />)}
-          </div> : <div className="empty-state"><UserRoundSearch size={30} aria-hidden="true" /><h3>Estamos incorporando los primeros perfiles</h3><p>Los técnicos y empresas aparecerán aquí una vez aprobados por administración.</p><Link className="button button-primary" href="/registro-tecnico">Publicar mi perfil</Link></div>}
         </div>
       </section>
 
@@ -225,7 +233,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="section section-blue" aria-labelledby="stories-title">
+      <section className="section section-blue" aria-labelledby="stories-title" hidden={publicReviews.length === 0}>
         <div className="container">
           <div className="section-header landing-section-header is-light"><div><span className="eyebrow">{isLive ? "Opiniones verificadas" : "Opiniones de demostración"}</span><h2 id="stories-title">Experiencias de clientes verificados</h2><p>{isLive ? "Solo publicamos evaluaciones asociadas a solicitudes completadas, correos verificados y una revisión administrativa." : "Ejemplos ficticios para revisar cómo se presentarán las evaluaciones verificadas."}</p></div></div>
           {publicReviews.length > 0 ? (
