@@ -11,6 +11,7 @@ import {
 } from "@/domain/professional-gallery";
 import type { ApiEnvelope } from "@/domain/contact-request";
 import { getAppSession } from "@/lib/auth/session";
+import { notifyAdministratorOfProfessionalChange } from "@/lib/professional/change-notifications";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
     category: formData.get("category"),
     description: formData.get("description"),
   });
+  const shouldNotifyAdministrator = formData.get("notifyAdministrator") !== "false";
   if (!parsed.success) {
     return NextResponse.json(
       {
@@ -174,6 +176,10 @@ export async function POST(request: Request) {
     createdAt: inserted.created_at,
     imageUrl: signed.signedUrl,
   };
+
+  if (shouldNotifyAdministrator) {
+    await notifyAdministratorOfProfessionalChange(session, "Galería de trabajos");
+  }
 
   return NextResponse.json(
     { data, error: null, meta: { source: "supabase", moderation: "pending" } } satisfies ApiEnvelope<ProfessionalGalleryItem>,

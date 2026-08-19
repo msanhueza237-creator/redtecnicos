@@ -124,6 +124,15 @@ se informa de forma segura en la respuesta y en el módulo administrativo.
 Al crear una nueva cuenta profesional se envía además una confirmación de
 “En revisión” al postulante y un aviso al correo privado configurado en
 `ADMIN_NOTIFICATION_EMAIL`, con acceso directo a `/admin/postulaciones`.
+Los cambios enviados desde perfil, servicios, cobertura, disponibilidad,
+fotografía o galería generan un aviso administrativo adicional. Los títulos y
+documentos mantienen sus avisos especializados. Un fallo de correo nunca
+revierte la modificación ya guardada.
+
+Las fichas públicas registran aperturas agregadas por perfil y día. El informe
+de `/admin/estadisticas` muestra el ranking por período sin guardar IP, cookies,
+correo ni otro identificador del visitante. La llave HMAC rotativa se utiliza
+únicamente para limitar abuso y expira en la tabla de rate limiting.
 
 ## Accesos privados de demostración
 

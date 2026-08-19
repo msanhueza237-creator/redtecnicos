@@ -21,7 +21,10 @@ test("administrators can explore privacy-safe operational statistics by period",
   await expect(page).toHaveURL(/\/admin\/estadisticas\?period=7$/);
   await expect(page.getByRole("link", { name: "7 días" })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("list", { name: "Solicitudes agrupadas cronológicamente" }).locator("li")).toHaveCount(7);
-  await expect(page.getByText("Visitas al directorio")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Perfiles más visitados" })).toBeVisible();
+  await expect(page.getByText(/aperturas de fichas públicas durante 7 días/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Servicios Térmicos Demo" })).toHaveAttribute("href", "/empresas/servicios-termicos-demo");
+  await expect(page.getByText(/no se conservan IP, cookies, correos ni datos personales/)).toBeVisible();
 
   const hasPageOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

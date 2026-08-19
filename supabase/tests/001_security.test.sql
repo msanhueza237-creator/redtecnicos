@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(93);
+select plan(100);
 
 select has_table('public', 'app_users', 'Existe la extensión segura de auth.users');
 select has_table('public', 'professional_profiles', 'Existe el perfil editable privado');
@@ -275,6 +275,31 @@ select function_privs_are(
   'public', 'get_admin_statistics', array['integer'],
   'authenticated', array['EXECUTE'],
   'authenticated invoca la función, que valida admin o superadmin internamente'
+);
+
+select has_table('public', 'profile_daily_views', 'Existen conteos diarios agregados de visitas a perfiles');
+select has_column('public', 'profile_daily_views', 'view_count', 'Las visitas se conservan únicamente como un total agregado');
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.profile_daily_views'::regclass),
+  'RLS está activo en los conteos de visitas'
+);
+select table_privs_are(
+  'public', 'profile_daily_views', 'anon', array[]::text[],
+  'anon no puede leer ni modificar directamente la analítica'
+);
+select has_function(
+  'public', 'record_public_profile_view', array['text', 'text'],
+  'Existe el registro agregado y limitado de visitas públicas'
+);
+select function_privs_are(
+  'public', 'record_public_profile_view', array['text', 'text'],
+  'anon', array[]::text[],
+  'anon no puede incrementar visitas directamente fuera de la aplicación'
+);
+select function_privs_are(
+  'public', 'record_public_profile_view', array['text', 'text'],
+  'authenticated', array[]::text[],
+  'authenticated tampoco puede inflar visitas directamente'
 );
 
 select has_table('public', 'site_content_entries', 'Existe el contenido público versionado');

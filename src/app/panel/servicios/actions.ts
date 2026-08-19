@@ -7,6 +7,7 @@ import {
   type ProfessionalPanelActionState,
 } from "@/domain/professional-profile";
 import { requireAppRole } from "@/lib/auth/session";
+import { notifyAdministratorOfProfessionalChange } from "@/lib/professional/change-notifications";
 import { createClient } from "@/lib/supabase/server";
 
 export async function updateProfessionalServicesAction(
@@ -43,6 +44,8 @@ export async function updateProfessionalServicesAction(
         : "No fue posible guardar los servicios. Inténtalo nuevamente.",
     };
   }
+
+  await notifyAdministratorOfProfessionalChange(session, "Servicios y especialidades");
 
   revalidatePath("/panel");
   revalidatePath("/panel/servicios");

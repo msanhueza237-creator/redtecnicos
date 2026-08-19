@@ -190,8 +190,10 @@ entorno de desarrollo desechable y nunca en producción.
 
 Los logs son estructurados y excluyen PII sensible. El endpoint de salud no
 publica host, esquema, versión de PostgreSQL, claves ni mensajes de excepción.
-La analítica registra eventos mínimos con `session_id` y metadatos limitados;
-los perfiles demo se excluyen en la consulta de base de datos.
+La analítica de fichas conserva únicamente conteos diarios agregados por perfil;
+no registra `session_id`, IP, cookies ni datos personales. Una llave HMAC de red
+rotativa limita abuso sin incorporarse al informe, y los perfiles demo se
+excluyen tanto al registrar como al consultar.
 
 ## Decisiones del ciclo 1
 

@@ -7,6 +7,7 @@ import {
   applicantRegistrationEmailTemplate,
   customerContactEmailTemplate,
   professionalRequestEmailTemplate,
+  professionalChangeAdministratorEmailTemplate,
   qualificationAdministratorEmailTemplate,
   qualificationApplicantEmailTemplate,
   qualificationDecisionEmailTemplate,
@@ -60,6 +61,15 @@ export interface ProfessionalRegistrationMailDeliveryResult {
   configured: boolean;
   administrator: "sent" | "failed" | "skipped";
   applicant: "sent" | "failed" | "skipped";
+}
+
+export interface ProfessionalChangeEmailContext {
+  applicantName: string;
+  applicantEmail: string | null;
+  professionalName: string;
+  professionalKind: string;
+  section: string;
+  adminUrl: string;
 }
 
 export interface QualificationSubmissionEmailContext {
@@ -256,6 +266,29 @@ export async function sendProfessionalRegistrationEmails(
         ? administrator.status === "fulfilled" ? "sent" : "failed"
         : "skipped",
     };
+  } finally {
+    client.close();
+  }
+}
+
+export async function sendProfessionalChangeNotificationEmail(
+  context: ProfessionalChangeEmailContext,
+): Promise<SingleMailDeliveryResult> {
+  if (!smtpConfig()) return "skipped";
+  const administratorEmail = administratorNotificationEmail();
+  if (!administratorEmail) return "skipped";
+
+  const { client, config } = transporter();
+  try {
+    await client.sendMail({
+      from: { name: config.fromName, address: config.fromEmail },
+      to: administratorEmail,
+      ...(context.applicantEmail ? { replyTo: context.applicantEmail } : {}),
+      ...professionalChangeAdministratorEmailTemplate(context),
+    });
+    return "sent";
+  } catch {
+    return "failed";
   } finally {
     client.close();
   }

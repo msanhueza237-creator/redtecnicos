@@ -7,6 +7,7 @@ import {
   type CoverageActionState,
 } from "@/domain/professional-coverage";
 import { requireAppRole } from "@/lib/auth/session";
+import { notifyAdministratorOfProfessionalChange } from "@/lib/professional/change-notifications";
 import { createClient } from "@/lib/supabase/server";
 
 interface CoverageRpcRow {
@@ -61,6 +62,8 @@ export async function updateProfessionalCoverageAction(
         : "No fue posible guardar la cobertura. Inténtalo nuevamente.",
     };
   }
+
+  await notifyAdministratorOfProfessionalChange(session, "Cobertura y comunas");
 
   revalidatePath("/panel");
   revalidatePath("/panel/cobertura");

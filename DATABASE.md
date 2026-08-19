@@ -71,7 +71,8 @@ la instancia dedicada.
 - `complaints`: denuncia, gravedad, estado y resolución.
 - `admin_notes`: notas internas nunca visibles en el directorio.
 - `audit_logs`: acción, actor, recurso, motivo y diferencias minimizadas.
-- `analytics_events`: evento permitido y metadatos limitados.
+- `profile_daily_views`: total diario agregado por perfil; no almacena eventos
+  individuales, IP, cookies, correo ni identificadores de visitantes.
 - `notifications` y `email_logs`: estado operativo sin cuerpo sensible.
 - `rate_limits`: clave hasheada, ventana, contador y vencimiento.
 - `system_settings`: configuración no secreta y versionada.
@@ -123,6 +124,9 @@ puntaje ni señales de revisión. Toda corrección administrativa exige motivo y
 - Solo una revisión sensible pendiente puede estar activa por perfil.
 - Suspender o eliminar retira la proyección pública sin borrar evidencia sujeta
   a retención.
+- Las aperturas de fichas se agregan por fecha de Chile y conservan un máximo
+  de 13 meses. Los perfiles demo se excluyen en la función de registro y en el
+  informe administrativo.
 
 ## Diseño RLS
 

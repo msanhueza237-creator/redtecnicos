@@ -38,5 +38,10 @@ describe("admin statistics", () => {
     );
     expect(statistics.metrics.completedRequests).toBeLessThanOrEqual(statistics.metrics.requestsCreated);
     expect(statistics.regions.every((region) => region.value > 0)).toBe(true);
+    expect(statistics.topProfiles).toHaveLength(3);
+    expect(statistics.metrics.profileViews).toBe(
+      statistics.topProfiles.reduce((total, profile) => total + profile.value, 0),
+    );
+    expect(statistics.topProfiles[0]!.value).toBeGreaterThanOrEqual(statistics.topProfiles[1]!.value);
   });
 });

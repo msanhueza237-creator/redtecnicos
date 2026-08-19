@@ -6,6 +6,7 @@ import {
   type ProfessionalPanelActionState,
 } from "@/domain/professional-profile";
 import { requireAppRole } from "@/lib/auth/session";
+import { notifyAdministratorOfProfessionalChange } from "@/lib/professional/change-notifications";
 import { createClient } from "@/lib/supabase/server";
 
 export async function updateProfessionalPreferencesAction(
@@ -47,6 +48,8 @@ export async function updateProfessionalPreferencesAction(
   if (error) {
     return { status: "error", message: "No fue posible guardar la disponibilidad y preferencias." };
   }
+
+  await notifyAdministratorOfProfessionalChange(session, "Disponibilidad y condiciones comerciales");
 
   revalidatePath("/");
   revalidatePath("/panel");

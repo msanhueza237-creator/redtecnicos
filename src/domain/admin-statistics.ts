@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { professionalKindSchema } from "@/domain/directory";
 
 export const statisticsPeriods = [7, 30, 90, 365] as const;
 export type StatisticsPeriod = (typeof statisticsPeriods)[number];
@@ -13,6 +14,14 @@ const statisticsTimelinePointSchema = z.object({
   value: z.number().int().nonnegative(),
 });
 
+const profileVisitRankingSchema = z.object({
+  profileId: z.string().uuid(),
+  slug: z.string().min(1),
+  name: z.string().min(1),
+  kind: professionalKindSchema,
+  value: z.number().int().nonnegative(),
+});
+
 export const adminStatisticsSchema = z.object({
   periodDays: z.number().int().refine(
     (value): value is StatisticsPeriod => statisticsPeriods.includes(value as StatisticsPeriod),
@@ -23,12 +32,14 @@ export const adminStatisticsSchema = z.object({
     completedRequests: z.number().int().nonnegative(),
     completionRate: z.number().min(0).max(100),
     publishedProfiles: z.number().int().nonnegative(),
+    profileViews: z.number().int().nonnegative(),
     averageRating: z.number().min(0).max(5),
     publishedReviews: z.number().int().nonnegative(),
     pendingReviews: z.number().int().nonnegative(),
     openComplaints: z.number().int().nonnegative(),
   }),
   requestTimeline: z.array(statisticsTimelinePointSchema),
+  topProfiles: z.array(profileVisitRankingSchema).max(10),
   regions: z.array(statisticsCountSchema),
   services: z.array(statisticsCountSchema),
   requestStatuses: z.array(statisticsCountSchema),
@@ -36,6 +47,7 @@ export const adminStatisticsSchema = z.object({
 
 export type AdminStatistics = z.infer<typeof adminStatisticsSchema>;
 export type StatisticsTimelinePoint = z.infer<typeof statisticsTimelinePointSchema>;
+export type ProfileVisitRanking = z.infer<typeof profileVisitRankingSchema>;
 
 export interface StatisticsTimelineBucket {
   startDate: string;
@@ -83,12 +95,14 @@ export function createEmptyAdminStatistics(periodDays: StatisticsPeriod): AdminS
       completedRequests: 0,
       completionRate: 0,
       publishedProfiles: 0,
+      profileViews: 0,
       averageRating: 0,
       publishedReviews: 0,
       pendingReviews: 0,
       openComplaints: 0,
     },
     requestTimeline: [],
+    topProfiles: [],
     regions: [],
     services: [],
     requestStatuses: [],
@@ -115,6 +129,11 @@ export function createDemoAdminStatistics(
   });
   const requestsCreated = requestTimeline.reduce((total, point) => total + point.value, 0);
   const completedRequests = Math.round(requestsCreated * 0.58);
+  const topProfiles = [
+    { profileId: "11111111-1111-4111-8111-111111111111", slug: "servicios-termicos-demo", name: "Servicios Térmicos Demo", kind: "company" as const, value: Math.max(1, Math.round(requestsCreated * 2.8)) },
+    { profileId: "22222222-2222-4222-8222-222222222222", slug: "tecnico-austral-ejemplo", name: "Técnico Austral Ejemplo", kind: "technician" as const, value: Math.max(1, Math.round(requestsCreated * 2.1)) },
+    { profileId: "33333333-3333-4333-8333-333333333333", slug: "clima-pacifico-demo", name: "Clima Pacífico Demo", kind: "company" as const, value: Math.max(1, Math.round(requestsCreated * 1.4)) },
+  ];
 
   return {
     periodDays,
@@ -124,12 +143,14 @@ export function createDemoAdminStatistics(
       completedRequests,
       completionRate: requestsCreated ? Number((completedRequests * 100 / requestsCreated).toFixed(1)) : 0,
       publishedProfiles: 48,
+      profileViews: topProfiles.reduce((total, profile) => total + profile.value, 0),
       averageRating: 4.7,
       publishedReviews: 98,
       pendingReviews: 3,
       openComplaints: 2,
     },
     requestTimeline,
+    topProfiles,
     regions: [
       { key: "CL-RM", value: Math.max(1, Math.round(requestsCreated * 0.42)) },
       { key: "CL-VS", value: Math.max(1, Math.round(requestsCreated * 0.24)) },

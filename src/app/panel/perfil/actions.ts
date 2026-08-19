@@ -6,6 +6,7 @@ import {
   type ProfessionalPanelActionState,
 } from "@/domain/professional-profile";
 import { requireAppRole } from "@/lib/auth/session";
+import { notifyAdministratorOfProfessionalChange } from "@/lib/professional/change-notifications";
 import { createClient } from "@/lib/supabase/server";
 
 export async function updateProfessionalProfileAction(
@@ -50,6 +51,8 @@ export async function updateProfessionalProfileAction(
         : "No fue posible guardar el perfil. Inténtalo nuevamente.",
     };
   }
+
+  await notifyAdministratorOfProfessionalChange(session, "Perfil principal y datos de contacto");
 
   revalidatePath("/panel");
   revalidatePath("/panel/perfil");

@@ -115,6 +115,7 @@ export function ProfessionalGalleryManager({ initialItems }: Readonly<{ initialI
         formData.set("title", entry.title);
         formData.set("category", batchCategory);
         formData.set("description", batchDescription);
+        formData.set("notifyAdministrator", index === 0 ? "true" : "false");
 
         try {
           const response = await fetch("/api/v1/profiles/gallery", { method: "POST", body: formData });

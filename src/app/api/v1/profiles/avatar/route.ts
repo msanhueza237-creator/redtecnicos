@@ -8,6 +8,7 @@ import {
   profileAvatarAcceptedMimeTypes,
 } from "@/domain/professional-profile";
 import { getAppSession } from "@/lib/auth/session";
+import { notifyAdministratorOfProfessionalChange } from "@/lib/professional/change-notifications";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -87,6 +88,8 @@ export async function POST(request: Request) {
   if (signedError || !signed?.signedUrl) {
     return errorResponse("PREVIEW_UNAVAILABLE", "La fotografía quedó guardada, pero no pudimos mostrar su vista previa.", 503);
   }
+
+  await notifyAdministratorOfProfessionalChange(session, "Fotografía profesional");
 
   revalidatePath("/panel");
   revalidatePath("/panel/perfil");

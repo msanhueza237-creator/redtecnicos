@@ -4,6 +4,7 @@ import {
   applicantRegistrationEmailTemplate,
   customerContactEmailTemplate,
   professionalRequestEmailTemplate,
+  professionalChangeAdministratorEmailTemplate,
   reviewInvitationEmailTemplate,
   smtpTestEmailTemplate,
 } from "@/lib/email/templates";
@@ -97,5 +98,22 @@ describe("plantillas de correo transaccional", () => {
     expect(template.html).toContain("Tu perfil quedó en revisión");
     expect(template.text).toContain("correo separado para confirmar");
     expect(template.text).toContain("no se publicará");
+  });
+
+  it("avisa al administrador cuando un profesional modifica su perfil", () => {
+    const template = professionalChangeAdministratorEmailTemplate({
+      applicantName: "Responsable Ejemplo",
+      applicantEmail: "responsable@example.invalid",
+      professionalName: "Clima Sur Ejemplo",
+      professionalKind: "Empresa",
+      section: "Servicios y especialidades",
+      adminUrl: "https://redtecnicos.cl/admin/postulaciones/123",
+    });
+
+    expect(template.subject).toContain("Clima Sur Ejemplo");
+    expect(template.html).toContain("Hay cambios pendientes de revisión");
+    expect(template.html).toContain("Servicios y especialidades");
+    expect(template.html).toContain("Revisar cambios");
+    expect(template.text).toContain("Pendiente de revisión");
   });
 });

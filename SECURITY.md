@@ -125,6 +125,9 @@ firmadas de buckets privados son breves, específicas y auditables.
 - Versionar términos, privacidad, autorización de publicación y aviso de
   responsabilidad; guardar fecha, versión, actor/sesión y evidencia minimizada.
 - Hashear IP con HMAC rotativo; no confundir hash con anonimización irreversible.
+- En visitas a perfiles, la HMAC rotativa se usa solo para rate limiting; la
+  analítica persistente contiene exclusivamente totales diarios por perfil y
+  se elimina después de 13 meses.
 - Separar correos operativos, de seguridad y comerciales. Marketing exige un
   consentimiento independiente y revocable.
 - Las retenciones de 90 días, 13 meses, 24 meses y 5 años son provisionales hasta

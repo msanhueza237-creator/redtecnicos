@@ -196,6 +196,40 @@ export function administratorRegistrationEmailTemplate(input: AdministratorRegis
   };
 }
 
+export interface ProfessionalChangeAdministratorEmailInput {
+  applicantName: string;
+  applicantEmail: string | null;
+  professionalName: string;
+  professionalKind: string;
+  section: string;
+  adminUrl: string;
+}
+
+export function professionalChangeAdministratorEmailTemplate(
+  input: ProfessionalChangeAdministratorEmailInput,
+): EmailTemplate {
+  return {
+    subject: `Cambios pendientes · ${input.professionalName}`,
+    text: `Cambios enviados a revisión en Red Técnicos Chile\n\nPerfil: ${input.professionalName}\nResponsable: ${input.applicantName}\nCorreo: ${input.applicantEmail ?? "No disponible"}\nTipo: ${input.professionalKind}\nSección modificada: ${input.section}\nEstado: Pendiente de revisión\n\nRevisar en administración: ${input.adminUrl}`,
+    html: emailLayout({
+      preheader: `${input.professionalName} modificó la sección ${input.section}.`,
+      eyebrow: "Actualización de perfil",
+      title: "Hay cambios pendientes de revisión",
+      intro: "Un profesional guardó información nueva. La versión pública anterior permanece visible hasta que la administración tome una decisión.",
+      bodyHtml: `${detailsTable([
+        { label: "Perfil", value: input.professionalName },
+        { label: "Responsable", value: input.applicantName },
+        { label: "Correo", value: input.applicantEmail ?? "No disponible" },
+        { label: "Tipo", value: input.professionalKind },
+        { label: "Sección modificada", value: input.section },
+        { label: "Estado", value: "Pendiente de revisión" },
+      ])}<p style="margin:18px 0 0;color:#50636e;font-size:13px;line-height:20px">Compara los datos pendientes con la última versión aprobada antes de publicarlos.</p>`,
+      action: { label: "Revisar cambios", url: input.adminUrl },
+      footnote: "Aviso administrativo generado automáticamente por Red Técnicos Chile.",
+    }),
+  };
+}
+
 export interface ApplicantRegistrationEmailInput {
   applicantName: string;
   displayName: string;

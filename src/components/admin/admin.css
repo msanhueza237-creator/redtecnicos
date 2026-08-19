@@ -309,6 +309,25 @@
 .admin-bar-label { display: flex; justify-content: space-between; color: #52646e; font-size: 12px; }
 .admin-bar-track { height: 9px; overflow: hidden; border-radius: 999px; background: #e8eff3; }
 .admin-bar-track span { display: block; height: 100%; border-radius: inherit; background: var(--brand-surface); }
+.admin-profile-visit-list { gap: 18px; }
+.admin-profile-visit-label { align-items: center; gap: 16px; }
+.admin-profile-visit-label > strong { flex: 0 0 auto; color: var(--brand-action); }
+.admin-profile-visit-name { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.admin-profile-visit-name > small {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--brand-soft);
+  color: var(--brand-action);
+  font-weight: 850;
+}
+.admin-profile-visit-name > span { display: grid; min-width: 0; gap: 1px; }
+.admin-profile-visit-name a { overflow: hidden; color: var(--ink-strong); font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.admin-profile-visit-name a:hover { color: var(--brand-action); }
+.admin-profile-visit-name > span > small { color: var(--muted); font-size: 10px; }
 
 .admin-statistics-toolbar {
   display: flex;
@@ -637,6 +656,8 @@
   .admin-audit-filters { grid-template-columns: minmax(0, 1fr); }
   .admin-statistics-periods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-statistics-trend { min-width: 560px; }
+  .admin-profile-visit-label { align-items: flex-start; flex-direction: column; gap: 7px; }
+  .admin-profile-visit-label > strong { padding-left: 36px; }
   .admin-content-safety { align-items: flex-start; flex-wrap: wrap; }
   .admin-content-safety > span { width: 100%; padding-left: 32px; }
   .admin-content-card-header { flex-direction: column; }

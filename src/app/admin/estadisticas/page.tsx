@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import {
   CheckCircle2,
+  Eye,
   Inbox,
   MessageSquareText,
   MessageSquareWarning,
@@ -21,6 +22,7 @@ import {
   parseStatisticsPeriod,
   statisticsPeriods,
   type StatisticsTimelineBucket,
+  type ProfileVisitRanking,
 } from "@/domain/admin-statistics";
 import { regionNameFromCode } from "@/domain/professional-registration";
 import { getAdminStatistics } from "@/lib/admin/statistics";
@@ -95,6 +97,35 @@ function RankingList({
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function ProfileVisitRankingList({ items }: Readonly<{ items: ProfileVisitRanking[] }>) {
+  if (!items.length) {
+    return <p className="admin-statistics-empty">Las visitas comenzarán a aparecer cuando se abran perfiles públicos.</p>;
+  }
+  const maximum = Math.max(...items.map((item) => item.value), 1);
+
+  return (
+    <div className="admin-bar-list admin-profile-visit-list">
+      {items.map((item, index) => {
+        const href = `/${item.kind === "company" ? "empresas" : "tecnicos"}/${item.slug}` as Route;
+        return (
+          <div className="admin-bar-row" key={item.profileId}>
+            <div className="admin-bar-label admin-profile-visit-label">
+              <span className="admin-profile-visit-name">
+                <small>{index + 1}</small>
+                <span><Link href={href}>{item.name}</Link><small>{item.kind === "company" ? "Empresa" : "Técnico independiente"}</small></span>
+              </span>
+              <strong>{numberFormatter.format(item.value)} {item.value === 1 ? "visita" : "visitas"}</strong>
+            </div>
+            <div className="admin-bar-track" aria-hidden="true">
+              <span style={{ width: `${item.value * 100 / maximum}%` }} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -180,6 +211,13 @@ export default async function StatisticsPage({ searchParams }: StatisticsPagePro
         {!hasTimelineActivity ? <p className="admin-statistics-empty">Todavía no existen solicitudes en este período.</p> : null}
       </AdminCard>
 
+      <AdminCard
+        title="Perfiles más visitados"
+        description={`${numberFormatter.format(statistics.metrics.profileViews)} aperturas de fichas públicas durante ${periodLabel(periodDays)}`}
+      >
+        <ProfileVisitRankingList items={statistics.topProfiles} />
+      </AdminCard>
+
       <div className="dashboard-columns admin-statistics-rankings">
         <AdminCard title="Demanda por región" description="Solicitudes recibidas según la ubicación del profesional">
           <RankingList
@@ -206,9 +244,9 @@ export default async function StatisticsPage({ searchParams }: StatisticsPagePro
         </AdminCard>
         <AdminCard title="Alcance de la medición" description="Qué incluye esta primera versión">
           <ul className="admin-statistics-scope-list">
-            <li><CheckCircle2 aria-hidden="true" size={17} /><span><strong>Incluido</strong> solicitudes, estados, perfiles, evaluaciones y reclamos.</span></li>
-            <li><CheckCircle2 aria-hidden="true" size={17} /><span><strong>Privacidad</strong> solo totales agregados; no se trasladan datos personales.</span></li>
-            <li><Inbox aria-hidden="true" size={17} /><span><strong>Próxima etapa</strong> visitas y conversión web cuando exista analítica consentida.</span></li>
+            <li><CheckCircle2 aria-hidden="true" size={17} /><span><strong>Incluido</strong> visitas a perfiles, solicitudes, estados, evaluaciones y reclamos.</span></li>
+            <li><CheckCircle2 aria-hidden="true" size={17} /><span><strong>Privacidad</strong> las visitas se guardan como totales diarios; no se conservan IP, cookies, correos ni datos personales.</span></li>
+            <li><Eye aria-hidden="true" size={17} /><span><strong>Lectura</strong> una recarga puede sumar otra apertura, por lo que el ranking representa interés relativo y no personas únicas.</span></li>
           </ul>
           <p className="admin-statistics-updated">Actualizado {generatedAtFormatter.format(new Date(statistics.generatedAt))}</p>
         </AdminCard>
